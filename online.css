@@ -1,0 +1,143 @@
+/* ============================================================
+   CAOS REAL — estilos da camada ONLINE
+   ============================================================ */
+
+/* ---------- LOBBY ---------- */
+#lobbyOv{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 30%,#1a0426 0%,#070109 60%,#000 100%);
+  padding:18px;overflow:auto}
+.lobbyBox{width:min(460px,94vw);background:linear-gradient(170deg,rgba(20,8,30,.96),rgba(8,2,12,.98));
+  border:2px solid #c44dff;border-radius:18px;padding:26px 24px 20px;
+  box-shadow:0 0 60px rgba(196,77,255,.35),inset 0 0 40px rgba(0,0,0,.6);text-align:center}
+.lobbyLogo{font:900 40px/1 system-ui;letter-spacing:6px;color:#fff;
+  text-shadow:0 0 24px #c44dff,0 4px 0 #3a0a5e}
+.lobbyLogo span{display:block;color:#c44dff;font-size:40px}
+.lobbySub{font:600 10.5px system-ui;letter-spacing:2.4px;color:#8fb0c4;margin:8px 0 22px}
+.lobbyCampo{text-align:left;margin-bottom:16px}
+.lobbyCampo label{display:block;font:900 9px system-ui;letter-spacing:2.2px;color:#c44dff;margin-bottom:6px}
+.lobbyCampo input{width:100%;box-sizing:border-box;background:#0d0614;border:1.5px solid #3a2a4a;
+  border-radius:9px;padding:11px 13px;color:#fff;font:700 14px system-ui;letter-spacing:.5px;outline:none}
+.lobbyCampo input:focus{border-color:#c44dff;box-shadow:0 0 14px rgba(196,77,255,.4)}
+.lobbyCampo.cod{display:flex;gap:8px;align-items:stretch}
+.lobbyCampo.cod input{text-align:center;font:900 22px system-ui;letter-spacing:8px;text-transform:uppercase}
+.lobbyBotoes{display:flex;flex-direction:column;gap:9px;margin-bottom:18px}
+.lbBtn{border:2px solid;border-radius:11px;padding:13px 16px;cursor:pointer;
+  font:900 13px system-ui;letter-spacing:1.6px;transition:all .15s;
+  display:flex;flex-direction:column;align-items:center;gap:3px;background:transparent}
+.lbBtn small{font:600 9px system-ui;letter-spacing:.8px;opacity:.7}
+.lbBtn:hover{transform:translateY(-2px)}
+.lbBtn.solo{border-color:#3ddc97;color:#3ddc97}
+.lbBtn.solo:hover{background:rgba(61,220,151,.13);box-shadow:0 0 20px rgba(61,220,151,.4)}
+.lbBtn.criar{border-color:#c44dff;color:#c44dff}
+.lbBtn.criar:hover{background:rgba(196,77,255,.13);box-shadow:0 0 20px rgba(196,77,255,.4)}
+.lbBtn.entrar{border-color:#f9c74f;color:#f9c74f;flex:0 0 auto;padding:0 20px;
+  justify-content:center;font-size:12px}
+.lbBtn.entrar:hover{background:rgba(249,199,79,.13)}
+.lobbyOu{font:600 9.5px system-ui;letter-spacing:2px;color:#5a6a7a;margin:4px 0 14px}
+.lobbyErro{min-height:18px;font:700 11px system-ui;color:#fe5f55;opacity:0;transition:opacity .2s}
+.lobbyErro.on{opacity:1}
+.lobbyPe{margin-top:12px;font:700 9px system-ui;letter-spacing:1.4px;color:#8fb0c4}
+
+/* ---------- PAINEL DA SALA / CHAT ---------- */
+#salaPainel{position:fixed;right:0;top:0;bottom:0;width:min(320px,92vw);z-index:300;
+  background:linear-gradient(180deg,rgba(12,6,18,.97),rgba(6,2,10,.98));
+  border-left:2px solid #c44dff;box-shadow:-8px 0 40px rgba(0,0,0,.7);
+  transform:translateX(100%);transition:transform .28s cubic-bezier(.3,1,.4,1);
+  display:flex;flex-direction:column;padding:12px 12px 10px}
+#salaPainel.aberto{transform:none}
+.spTopo{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.spCod{font:900 11px system-ui;letter-spacing:2px;color:#8fb0c4;display:flex;align-items:center;gap:6px}
+.spCod b{color:#c44dff;font-size:18px;letter-spacing:4px}
+.spCopiar{background:none;border:1px solid #3a2a4a;border-radius:6px;cursor:pointer;
+  font-size:13px;padding:2px 6px;transition:all .13s}
+.spCopiar:hover{border-color:#c44dff;background:rgba(196,77,255,.15)}
+.spSair{background:none;border:1.5px solid #fe5f55;color:#fe5f55;border-radius:7px;
+  padding:4px 11px;font:900 9px system-ui;letter-spacing:1.4px;cursor:pointer}
+.spSair:hover{background:rgba(254,95,85,.16)}
+.spJogadores{display:flex;flex-direction:column;gap:4px;margin-bottom:9px}
+.spJog{display:flex;align-items:center;gap:7px;padding:6px 9px;border-radius:8px;
+  background:rgba(255,255,255,.04);border:1px solid #23303c}
+.spJog.joga{border-color:#3ddc97}
+.spJog.eu{background:rgba(196,77,255,.12);border-color:#c44dff}
+.sjTag{font:900 9px system-ui;background:#1a2530;border-radius:5px;padding:2px 6px;color:#8fb0c4}
+.spJog.joga .sjTag{background:#0e3a28;color:#3ddc97}
+.sjNome{flex:1;font:700 11px system-ui;color:#e6eef6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sjPronto{font:600 8.5px system-ui;color:#8fb0c4;letter-spacing:.6px}
+.spAcao{margin-bottom:9px}
+.spAviso{font:600 10px system-ui;color:#8fb0c4;text-align:center;padding:8px;
+  background:rgba(255,255,255,.04);border-radius:8px;line-height:1.5}
+.spPronto{width:100%;border:2px solid #3ddc97;background:transparent;color:#3ddc97;
+  border-radius:9px;padding:10px;font:900 11px system-ui;letter-spacing:1.6px;cursor:pointer;transition:all .15s}
+.spPronto:hover{background:rgba(61,220,151,.15)}
+.spPronto.on{background:#0e3a28;box-shadow:0 0 16px rgba(61,220,151,.5)}
+.spChatTitulo{font:900 9px system-ui;letter-spacing:2.2px;color:#c44dff;margin-bottom:6px}
+.spChat{flex:1;overflow-y:auto;background:rgba(0,0,0,.35);border:1px solid #23303c;
+  border-radius:9px;padding:8px;display:flex;flex-direction:column;gap:5px;min-height:120px}
+.spChat::-webkit-scrollbar{width:6px}
+.spChat::-webkit-scrollbar-thumb{background:#3a2a4a;border-radius:3px}
+.chMsg{background:rgba(255,255,255,.05);border-radius:8px;padding:5px 8px;
+  border-left:2.5px solid #57c1ff;animation:chIn .22s ease-out}
+@keyframes chIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.chMsg.meu{border-left-color:#c44dff;background:rgba(196,77,255,.12)}
+.chDe{display:block;font:900 8.5px system-ui;letter-spacing:1px;color:#57c1ff;margin-bottom:2px}
+.chMsg.meu .chDe{color:#c44dff}
+.chTx{font:500 11.5px/1.45 system-ui;color:#e6eef6;word-break:break-word}
+.chH{float:right;font:600 8px system-ui;color:#5a6a7a;margin-left:6px}
+.chSis{font:600 9.5px system-ui;color:#8fb0c4;text-align:center;font-style:italic;
+  padding:3px;opacity:.85}
+.spEmotes{display:flex;gap:4px;justify-content:center;margin:7px 0}
+.spEmotes button{background:rgba(255,255,255,.06);border:1px solid #23303c;border-radius:7px;
+  font-size:16px;padding:3px 7px;cursor:pointer;transition:all .12s}
+.spEmotes button:hover{transform:scale(1.2);border-color:#c44dff;background:rgba(196,77,255,.2)}
+.spEntrada{display:flex;gap:6px}
+.spEntrada input{flex:1;min-width:0;background:#0d0614;border:1.5px solid #3a2a4a;border-radius:8px;
+  padding:9px 11px;color:#fff;font:500 12px system-ui;outline:none}
+.spEntrada input:focus{border-color:#c44dff}
+.spEntrada button{background:#3a0a5e;border:1.5px solid #c44dff;color:#fff;border-radius:8px;
+  padding:0 14px;font-size:14px;cursor:pointer;transition:all .13s}
+.spEntrada button:hover{background:#521080}
+
+/* ---------- BOTAO FLUTUANTE DO CHAT ---------- */
+#chatToggle{position:fixed;right:14px;bottom:14px;z-index:299;display:none;
+  width:52px;height:52px;border-radius:50%;border:2px solid #c44dff;
+  background:linear-gradient(160deg,#3a0a5e,#16041f);color:#fff;font-size:22px;
+  cursor:pointer;align-items:center;justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.6),0 0 20px rgba(196,77,255,.4);transition:all .15s}
+#chatToggle:hover{transform:scale(1.1)}
+#chatBadge{position:absolute;top:-3px;right:-3px;min-width:19px;height:19px;border-radius:10px;
+  background:#fe5f55;color:#fff;font:900 10px/19px system-ui;display:none;
+  align-items:center;justify-content:center;padding:0 4px}
+
+/* ---------- INDICADOR DE TURNO ---------- */
+#turnoOnline{position:fixed;left:50%;top:8px;transform:translateX(-50%);z-index:290;
+  padding:7px 20px;border-radius:20px;font:900 12px system-ui;letter-spacing:2px;
+  border:2px solid;display:none;pointer-events:none}
+#turnoOnline.meuTurno{background:rgba(14,58,40,.92);border-color:#3ddc97;color:#3ddc97;
+  animation:tPulse 1.4s ease-in-out infinite}
+#turnoOnline.turnoDele{background:rgba(30,20,10,.92);border-color:#8fb0c4;color:#8fb0c4}
+@keyframes tPulse{0%,100%{box-shadow:0 0 8px rgba(61,220,151,.4)}50%{box-shadow:0 0 22px rgba(61,220,151,.9)}}
+
+/* ---------- EMOTE FLUTUANTE ---------- */
+.emoteFlut{position:fixed;bottom:80px;z-index:310;font-size:42px;pointer-events:none;
+  animation:emSobe 2.4s ease-out forwards}
+@keyframes emSobe{
+  0%{opacity:0;transform:translateY(0) scale(.5)}
+  15%{opacity:1;transform:translateY(-30px) scale(1.2)}
+  100%{opacity:0;transform:translateY(-260px) scale(.9)}}
+
+@media(max-width:640px){
+  .lobbyLogo{font-size:32px}.lobbyLogo span{font-size:32px}
+  #salaPainel{width:100vw;border-left:none}
+}
+
+/* aviso de espera no lugar do botao "passe o dispositivo" */
+.spAguardando{
+  display:flex;align-items:center;justify-content:center;
+  min-height:74px;padding:14px 18px;
+  font:700 15px/1.3 system-ui,sans-serif;
+  color:#8fb0c4;text-align:center;
+  border:2px dashed #2c4155;border-radius:14px;
+  background:rgba(20,32,44,.55);
+  animation:spPulsa 1.6s ease-in-out infinite;
+}
+@keyframes spPulsa{0%,100%{opacity:.55}50%{opacity:1}}
