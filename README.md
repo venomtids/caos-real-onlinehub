@@ -75,7 +75,7 @@ navegadores um ao outro (PeerJS) também é grátis e público.
 Não. É um site estático — está sempre no ar, sem espera nenhuma.
 
 **Funciona em celular?**
-Funciona, mas o jogo foi feito pra tela grande. No celular fica apertado.
+Sim. O lobby e o jogo se adaptam à tela pequena: as cartas e os itens podem ser deslizados na horizontal, o HUD fica em uma faixa rolável e os botões têm áreas maiores para toque. Para jogar online no celular, mantenha a página aberta durante a partida.
 
 **Dá pra jogar sozinho?**
 Dá. O botão **🎮 JOGAR SOZINHO** roda o jogo completo contra o computador,

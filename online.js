@@ -23,50 +23,87 @@ const LETRAS='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // sem I,O,0,1
 const LIMITE_SALA=8, LIMITE_CHAT=60, MSG_MAX=300;
 
 function novoCodigo(){
-  let c=''; for(let i=0;i<4;i++) c+=LETRAS[Math.floor(Math.random()*LETRAS.length)];
+  let c=''; for(let i=0;i<4;i++) c+=LETRAS[Math.floor(randomOriginal()*LETRAS.length)];
   return c;
 }
-function novoId(){ return 'j'+Math.random().toString(36).slice(2,10) }
+function novoId(){ return 'j'+randomOriginal().toString(36).slice(2,10) }
 
 /* ---------------- carregar o PeerJS sob demanda ---------------- */
 let peerjsPronto=null;
+const PEERJS_CDNS=[
+  'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js',
+  'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js'
+];
+const PEER_OPTIONS={
+  host:'0.peerjs.com', port:443, path:'/', secure:true, debug:0,
+  config:{iceServers:[
+    {urls:'stun:stun.l.google.com:19302'},
+    {urls:'stun:stun.cloudflare.com:3478'}
+  ]}
+};
 function carregarPeerJS(){
+  if(window.Peer) return Promise.resolve();
   if(peerjsPronto) return peerjsPronto;
   peerjsPronto=new Promise((ok,falha)=>{
-    if(window.Peer) return ok();
-    const s=document.createElement('script');
-    s.src='https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
-    s.onload=()=>ok();
-    s.onerror=()=>falha(new Error('nao consegui carregar o PeerJS'));
-    document.head.appendChild(s);
-  });
+    let indice=0;
+    const tentarCDN=()=>{
+      if(window.Peer) return ok();
+      if(indice>=PEERJS_CDNS.length) return falha(new Error('PeerJS indisponível'));
+      const s=document.createElement('script');
+      let terminou=false;
+      const avancar=()=>{
+        if(terminou) return;
+        terminou=true; clearTimeout(prazo); s.remove(); indice++; tentarCDN();
+      };
+      const prazo=setTimeout(avancar,9000);
+      s.async=true;
+      s.src=PEERJS_CDNS[indice];
+      s.onload=()=>{
+        if(terminou) return;
+        terminou=true; clearTimeout(prazo);
+        if(window.Peer) ok();
+        else{ s.remove(); indice++; tentarCDN() }
+      };
+      s.onerror=avancar;
+      document.head.appendChild(s);
+    };
+    tentarCDN();
+  }).catch(e=>{ peerjsPronto=null; throw e });
   return peerjsPronto;
 }
 
 /* ---------------- criar / entrar ---------------- */
 function criarSala(nome,heroi){
-  conectando=true;
+  jaEncerrou=false; conectando=true; modoOnline=true;
   statusRede('abrindo a sala…','#f9c74f');
   carregarPeerJS().then(()=>{
     tentativasCod=0;
     tentarAbrir(nome,heroi);
-  }).catch(e=>{
-    conectando=false;
-    statusRede('sem conexao','#fe5f55');
-    mostrarErro('Não consegui carregar a rede. Verifique sua internet.');
+  }).catch(()=>{
+    conectando=false; modoOnline=false;
+    statusRede('sem conexão','#fe5f55');
+    mostrarErro('Não consegui carregar a rede. Verifique sua internet e tente novamente.');
   });
 }
 function tentarAbrir(nome,heroi){
   const cod=novoCodigo();
   if(peer){ try{ peer.destroy() }catch(e){} }
-  peer=new window.Peer(PREFIXO+cod,{debug:0});
+  let novoPeer;
+  try{ novoPeer=new window.Peer(PREFIXO+cod,{...PEER_OPTIONS}) }
+  catch(e){
+    conectando=false; modoOnline=false;
+    statusRede('erro','#fe5f55');
+    mostrarErro('Não consegui iniciar a conexão. Atualize a página e tente novamente.');
+    return;
+  }
+  peer=novoPeer;
 
-  peer.on('open',()=>{
+  novoPeer.on('open',()=>{
+    if(peer!==novoPeer) return;
     conectando=false; souHost=true; salaAtual=cod; meuId=novoId();
-    salaLocal={ codigo:cod, jogadores:new Map(), chat:[], host:meuId, jogo:false };
-    salaLocal.jogadores.set(meuId,{ id:meuId, nome, heroi, slot:1, pronto:false, host:true });
-    jogadoresSala=listaJogadores();
-    meuSlot=1;
+    salaLocal={codigo:cod,jogadores:new Map(),chat:[],host:meuId,jogo:false,ultimaAvancada:0};
+    salaLocal.jogadores.set(meuId,{id:meuId,nome,heroi,slot:1,pronto:false,host:true});
+    jogadoresSala=listaJogadores(); meuSlot=1;
     statusRede('sala aberta','#3ddc97');
     abrirSala();
     sistemaChat('Você abriu a sala '+cod+'. Mande o código pro seu amigo!');
@@ -74,73 +111,91 @@ function tentarAbrir(nome,heroi){
     renderJogadores();
   });
 
-  peer.on('connection',con=>{ ligarConexaoDoConvidado(con) });
+  novoPeer.on('connection',con=>{
+    if(peer===novoPeer) ligarConexaoDoConvidado(con);
+    else try{con.close()}catch(e){}
+  });
 
-  peer.on('error',err=>{
-    if(err && err.type==='unavailable-id'){
-      // codigo ja em uso: sorteia outro
-      if(++tentativasCod<8) return tentarAbrir(nome,heroi);
+  novoPeer.on('error',err=>{
+    if(peer!==novoPeer) return;
+    if(err && err.type==='unavailable-id' && ++tentativasCod<8){
+      try{novoPeer.destroy()}catch(e){}
+      peer=null;
+      return tentarAbrir(nome,heroi);
     }
-    conectando=false;
+    conectando=false; modoOnline=false;
     statusRede('erro','#fe5f55');
-    mostrarErro('Não consegui abrir a sala. Tente de novo.');
+    mostrarErro('Não consegui abrir a sala. Verifique a internet e tente novamente.');
   });
 }
 
 function entrarNaSala(cod,nome,heroi){
-  conectando=true;
+  jaEncerrou=false; conectando=true; modoOnline=true;
   statusRede('procurando a sala…','#f9c74f');
   carregarPeerJS().then(()=>{
-    if(peer){ try{ peer.destroy() }catch(e){} }
-    peer=new window.Peer({debug:0});
-    peer.on('open',()=>{
-      const con=peer.connect(PREFIXO+cod,{reliable:true});
-      let respondeu=false;
-
-      const prazo=setTimeout(()=>{
-        if(!respondeu){
-          conectando=false;
-          statusRede('sala nao encontrada','#fe5f55');
-          mostrarErro('Sala não encontrada. Confira o código — e veja se o anfitrião ainda está com a aba aberta.');
-          try{ con.close() }catch(e){}
-        }
-      },12000);
-
+    if(peer){try{peer.destroy()}catch(e){}}
+    let novoPeer,con=null,entrou=false,falhou=false;
+    const falhar=(mensagem,estado='erro')=>{
+      if(entrou || falhou) return;
+      falhou=true; entrou=false; conectando=false; modoOnline=false;
+      clearTimeout(prazo);
+      statusRede(estado,'#fe5f55');
+      mostrarErro(mensagem);
+      try{con&&con.close()}catch(e){}
+      try{novoPeer&&novoPeer.destroy()}catch(e){}
+      if(peer===novoPeer) peer=null;
+      conHost=null;
+    };
+    const prazo=setTimeout(()=>{
+      if(!entrou) falhar('A conexão demorou demais. Confira o código, a internet e se o anfitrião ainda está com a sala aberta.','tempo esgotado');
+    },18000);
+    try{novoPeer=new window.Peer({...PEER_OPTIONS})}
+    catch(e){falhar('Não consegui iniciar a conexão. Atualize a página e tente novamente.');return}
+    peer=novoPeer;
+    novoPeer.on('open',()=>{
+      if(peer!==novoPeer) return;
+      try{
+        con=novoPeer.connect(PREFIXO+cod,{reliable:true,serialization:'json'});
+        conHost=con;
+      }catch(e){falhar('Não consegui conectar à sala. Confira o código e tente novamente.','sala não encontrada');return}
       con.on('open',()=>{
-        respondeu=true; clearTimeout(prazo);
-        conectando=false; souHost=false; conHost=con;
-        statusRede('conectado','#3ddc97');
-        con.send({tipo:'entrar', nome, heroi});
+        if(peer!==novoPeer) return;
+        statusRede('validando sala…','#f9c74f');
+        try{con.send({tipo:'entrar',nome,heroi})}
+        catch(e){falhar('A conexão caiu ao entrar na sala. Tente novamente.','desconectado')}
       });
-      con.on('data',m=>receber(m));
+      con.on('data',m=>{
+        if(m && (m.tipo==='entrou'||m.tipo==='erro')){
+          clearTimeout(prazo);
+          if(m.tipo==='entrou'){
+            entrou=true; conectando=false; jaEncerrou=false;
+          }else{
+            falhar(m.msg||'Não foi possível entrar nesta sala.');
+            receber(m); return;
+          }
+        }
+        receber(m);
+      });
       con.on('close',()=>{
-        if(modoOnline) encerrarPorQuedaDoHost();
-        else statusRede('desconectado','#fe5f55');
-      });
-      // rede WebRTC as vezes demora a avisar: vigiamos o canal
-      const vigia=setInterval(()=>{
-        if(!modoOnline || souHost) return clearInterval(vigia);
-        if(conHost && !conHost.open){ clearInterval(vigia); encerrarPorQuedaDoHost() }
-      },2000);
-      con.on('error',()=>{
         clearTimeout(prazo);
-        conectando=false;
-        mostrarErro('Não consegui falar com a sala.');
+        if(entrou && modoOnline) encerrarPorQuedaDoHost();
+        else if(!entrou) falhar('A sala não respondeu. Confira o código e se o anfitrião está conectado.','sala não encontrada');
+      });
+      con.on('error',()=>{
+        if(entrou){encerrarPorQuedaDoHost();return}
+        falhar('Não consegui falar com a sala. Verifique sua conexão e tente novamente.','erro de rede');
       });
     });
-    peer.on('error',err=>{
-      conectando=false;
-      if(err && (err.type==='peer-unavailable')){
-        statusRede('sala nao encontrada','#fe5f55');
-        mostrarErro('Sala não encontrada. Confira o código.');
-      }else{
-        statusRede('erro','#fe5f55');
-        mostrarErro('Problema de rede. Tente de novo.');
-      }
+    novoPeer.on('error',err=>{
+      if(peer!==novoPeer || entrou) return;
+      if(err && err.type==='peer-unavailable')
+        falhar('Sala não encontrada. Confira o código e veja se o anfitrião ainda está com a aba aberta.','sala não encontrada');
+      else falhar('Problema de rede ao entrar. Verifique a internet e tente novamente.','erro de rede');
     });
   }).catch(()=>{
-    conectando=false;
-    mostrarErro('Não consegui carregar a rede. Verifique sua internet.');
+    conectando=false; modoOnline=false;
+    statusRede('sem conexão','#fe5f55');
+    mostrarErro('Não consegui carregar a rede. Verifique sua internet e tente novamente.');
   });
 }
 
@@ -259,15 +314,32 @@ function tratarNoHost(id,m){
       sincronizar();
       const jogam=[...salaLocal.jogadores.values()].filter(x=>x.slot);
       if(jogam.length===2 && jogam.every(x=>x.pronto) && !salaLocal.jogo){
-        salaLocal.jogo=true;
-        const semente=Math.floor(Math.random()*1e9);
-        paraTodos('comecar',{semente, jogadores:listaJogadores()});
+        salaLocal.jogo=true; salaLocal.ultimaAvancada=0; salaLocal.avancoPendente=null;
+        const semente=Math.floor(randomOriginal()*1e9);
+        const config={
+          hero:(window.hero&&window.hero.id)||'comedia',
+          foe:(window.foe&&window.foe.id)||'gremlin'
+        };
+        const inicio={tipo:'comecar',semente,config,jogadores:listaJogadores()};
+        // Enfileira o início nos convidados antes do anfitrião gerar a mão local.
+        conexoes.forEach(c=>{if(c.open){try{c.send(inicio)}catch(e){}}});
+        receber(inicio);
       }
       break;
     }
     case 'jogada':
-      if(!j.slot) return;
-      paraTodos('jogada',{de:j.nome, slot:j.slot, dados:m.dados},id);
+      if(!j.slot || !salaLocal.jogo) return;
+      paraTodos('jogada',{de:j.nome,slot:j.slot,dados:m.dados},id);
+      break;
+
+    case 'proxima':
+      if(!j.slot || !salaLocal.jogo) return;
+      aceitarAvanco(id,m.rodada);
+      break;
+
+    case 'snapshot':
+      if(id!==salaLocal.host || !salaLocal.jogo) return;
+      paraTodos('snapshot',{dados:m.dados},id);
       break;
 
     case 'estado':
@@ -276,8 +348,11 @@ function tratarNoHost(id,m){
       break;
 
     case 'fim':
-      salaLocal.jogo=false;
+      if(id!==salaLocal.host) return;          // o anfitriao decide quando a partida acaba
+      salaLocal.jogo=false; salaLocal.avancoPendente=null;
+      salaLocal.jogadores.forEach(x=>{x.pronto=false});
       paraTodos('fim',{dados:m.dados});
+      sincronizar();
       break;
 
     case 'sair': {
@@ -297,7 +372,7 @@ function tratarNoHost(id,m){
 function receber(m){
   switch(m.tipo){
     case 'entrou':
-      salaAtual=m.codigo; meuId=m.id; souHost=(m.host===m.id);
+      jaEncerrou=false; salaAtual=m.codigo; meuId=m.id; souHost=(m.host===m.id);
       jogadoresSala=m.jogadores||[];
       meuSlot=(jogadoresSala.find(j=>j.id===meuId)||{}).slot||0;
       abrirSala();
@@ -325,10 +400,13 @@ function receber(m){
     case 'comecar':
       jogadoresSala=m.jogadores||jogadoresSala;
       meuSlot=(jogadoresSala.find(j=>j.id===meuId)||{}).slot||0;
-      iniciarPartidaOnline(m.semente);
+      iniciarPartidaOnline(m.semente,m.config);
       break;
 
     case 'jogada': aplicarJogadaRemota(m); break;
+    case 'avancar': aplicarAvancoRemoto(m.rodada); break;
+    case 'avancoErro': cancelarAvanco(m.texto||'Não foi possível avançar. Tente novamente.'); break;
+    case 'snapshot': aplicarSnapshotRemoto(m.dados); break;
     case 'estado': aplicarEstadoRemoto(m.dados); break;
 
     case 'abandono':
@@ -339,6 +417,16 @@ function receber(m){
 
     case 'fim':
       sistemaChat('A partida terminou.');
+      if(!souHost && emPartidaOnline){
+        try{
+          if(m.dados && window.st){
+            if(typeof m.dados.hp1==='number') st.hp1=m.dados.hp1;
+            if(typeof m.dados.hp2==='number') st.hp2=m.dados.hp2;
+            if(typeof upd==='function') upd();
+          }
+          if(typeof window.finish==='function') window.finish();
+        }catch(e){console.warn('fim online:',e)}
+      }
       break;
 
     case 'salaMorreu':
@@ -350,13 +438,17 @@ function receber(m){
 let jaEncerrou=false;
 function encerrarPorQuedaDoHost(){
   if(jaEncerrou || souHost) return;
-  jaEncerrou=true;
+  jaEncerrou=true; modoOnline=false; conectando=false;
+  cancelarAvanco();
   statusRede('sala encerrada','#fe5f55');
   sistemaChat('⚠ O anfitrião saiu — a sala acabou.');
   if(window.banner) banner('SALA ENCERRADA','#fe5f55');
-  emPartidaOnline=false; desligarRng();
+  emPartidaOnline=false;window.__onlineSession=false;desligarRng();limparSincronizacaoSnapshot();
+  try{window.__restoreOnlineConfig&&window.__restoreOnlineConfig()}catch(e){}
   const p=$$('salaPainel'); if(p) p.classList.add('aberto');
-  setTimeout(()=>{ abrirLobby() },2000);
+  const antiga=peer; peer=null; conHost=null;
+  try{antiga&&antiga.destroy()}catch(e){}
+  setTimeout(()=>{ if(jaEncerrou) abrirLobby() },2000);
 }
 
 /* ---------------- interface: lobby ---------------- */
@@ -370,8 +462,8 @@ function criarInterface(){
       <div class="lobbySub">jogue com seus amigos · salas privadas · chat</div>
 
       <div class="lobbyCampo">
-        <label>SEU NOME</label>
-        <input id="lbNome" maxlength="18" placeholder="como querem te chamar?" autocomplete="off">
+        <label for="lbNome">SEU NOME</label>
+        <input id="lbNome" maxlength="18" placeholder="como querem te chamar?" autocomplete="nickname">
       </div>
 
       <div class="lobbyBotoes">
@@ -381,7 +473,7 @@ function criarInterface(){
 
       <div class="lobbyOu">— ou entre numa sala —</div>
       <div class="lobbyCampo cod">
-        <input id="lbCodigo" maxlength="4" placeholder="CÓDIGO" autocomplete="off">
+        <input id="lbCodigo" maxlength="4" placeholder="CÓDIGO" aria-label="Código da sala" autocomplete="off" autocapitalize="characters" spellcheck="false">
         <button class="lbBtn entrar" id="lbEntrar">ENTRAR</button>
       </div>
       <div class="lobbyErro" id="lbErro"></div>
@@ -392,8 +484,11 @@ function criarInterface(){
   <div id="salaPainel">
     <div class="spTopo">
       <div class="spCod">SALA <b id="spCodigo">----</b>
-        <button class="spCopiar" id="spCopiar" title="copiar código">📋</button></div>
-      <button class="spSair" id="spSair">SAIR</button>
+        <button class="spCopiar" id="spCopiar" title="copiar link da sala" aria-label="Copiar link da sala">📋</button></div>
+      <div class="spTopoAcoes">
+        <button class="spFechar" id="spFechar" title="voltar ao jogo">↙ JOGO</button>
+        <button class="spSair" id="spSair">SAIR</button>
+      </div>
     </div>
     <div class="spJogadores" id="spJogadores"></div>
     <div class="spAcao" id="spAcao"></div>
@@ -410,7 +505,7 @@ function criarInterface(){
     </div>
   </div>
 
-  <button id="chatToggle" title="abrir/fechar o chat">💬<span id="chatBadge"></span></button>
+  <button id="chatToggle" title="abrir/fechar o chat" aria-label="Abrir ou fechar o chat">💬<span id="chatBadge"></span></button>
   `;
   document.body.appendChild(el);
   ligarEventos();
@@ -436,6 +531,10 @@ function ligarEventos(){
   });
   $$('lbNome').addEventListener('keydown',e=>{ if(e.key==='Enter') $$('lbCriar').click() });
 
+  $$('spFechar').onclick=()=>{
+    $$('salaPainel').classList.remove('aberto');
+    naoLidas=0; atualizarBadge();
+  };
   $$('spSair').onclick=()=>{
     if(souHost){
       conexoes.forEach(c=>{ try{ c.send({tipo:'sistema',texto:'O anfitrião encerrou a sala.'}); c.close() }catch(e){} });
@@ -447,17 +546,30 @@ function ligarEventos(){
     try{ peer && peer.destroy() }catch(e){}
     peer=null; conHost=null; souHost=false;
     modoOnline=false; salaAtual=null; emPartidaOnline=false;
+    cancelarAvanco();window.__onlineSession=false;limparSincronizacaoSnapshot();
+    try{window.__restoreOnlineConfig&&window.__restoreOnlineConfig()}catch(e){}
     desligarRng();
     statusRede('offline','#8fb0c4');
     $$('salaPainel').classList.remove('aberto');
     $$('chatToggle').style.display='none';
     abrirLobby();
   };
-  $$('spCopiar').onclick=()=>{
+  $$('spCopiar').onclick=async()=>{
     const t=location.origin+location.pathname+'?sala='+salaAtual;
-    navigator.clipboard?.writeText(t).then(()=>{
-      sistemaChat('Link da sala copiado! Mande pro seu amigo.');
-    }).catch(()=>{ sistemaChat('Código da sala: '+salaAtual) });
+    try{
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        await navigator.clipboard.writeText(t);
+        sistemaChat('Link da sala copiado! Mande pro seu amigo.');
+        return;
+      }
+      const area=document.createElement('textarea');
+      area.value=t; area.setAttribute('readonly','');
+      area.style.cssText='position:fixed;left:-9999px;top:0;opacity:0';
+      document.body.appendChild(area); area.select();
+      const copiou=document.execCommand&&document.execCommand('copy');
+      area.remove();
+      sistemaChat(copiou?'Link da sala copiado! Mande pro seu amigo.':'Link: '+t);
+    }catch(e){sistemaChat('Link da sala: '+t)}
   };
   $$('spEnviar').onclick=enviarChat;
   $$('spTexto').addEventListener('keydown',e=>{
@@ -504,7 +616,8 @@ function abrirSala(){
 }
 function voltarAoLobby(){
   desligarRng();
-  emPartidaOnline=false;
+  emPartidaOnline=false;window.__onlineSession=false;limparSincronizacaoSnapshot();
+  try{window.__restoreOnlineConfig&&window.__restoreOnlineConfig()}catch(e){}
   const p=$$('salaPainel'); if(p) p.classList.add('aberto');
 }
 
@@ -582,7 +695,7 @@ function enviarChat(){
 function flutuarEmote(e){
   const d=document.createElement('div');
   d.className='emoteFlut'; d.textContent=e;
-  d.style.left=(15+Math.random()*70)+'%';
+  d.style.left=(15+(randomOriginal?randomOriginal():Math.random())*70)+'%';
   document.body.appendChild(d);
   setTimeout(()=>d.remove(),2400);
 }
@@ -591,26 +704,186 @@ function flutuarEmote(e){
    MULTIPLAYER — o anfitriao simula, o convidado acompanha
    ============================================================ */
 let emPartidaOnline=false;
+let ultimaFotoAnfitriao=0,fotoAgendada=0,fotoPendente=null,fotoAplicada=0,sincronizadoOnline=false;
 
-const randomOriginal = Math.random;
-let rngLigado=false;
+const randomOriginal=Math.random;
+window.__visualRandom=()=>randomOriginal();
+let rngLigado=false,rngState=0,rngSetState=null;
 function ligarRng(semente){
-  let x = 0;
-  const str = String(semente||'caos');
-  for(let i=0;i<str.length;i++) x = (x*31 + str.charCodeAt(i))>>>0;
-  if(!x) x = 0x9e3779b9;
-  Math.random = function(){        // mulberry32
-    x |= 0; x = (x + 0x6D2B79F5) | 0;
-    let t = Math.imul(x ^ (x >>> 15), 1 | x);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  let x=0;
+  const str=String(semente||'caos');
+  for(let i=0;i<str.length;i++) x=(x*31+str.charCodeAt(i))>>>0;
+  if(!x)x=0x9e3779b9;
+  rngState=x>>>0;
+  rngSetState=v=>{x=Number(v)|0;rngState=x>>>0};
+  Math.random=function(){                    // mulberry32 replicável entre os dois navegadores
+    x|=0; x=(x+0x6D2B79F5)|0; rngState=x>>>0;
+    let t=Math.imul(x^(x>>>15),1|x);
+    t=(t+Math.imul(t^(t>>>7),61|t))^t;
+    return ((t^(t>>>14))>>>0)/4294967296;
   };
   rngLigado=true;
 }
-function desligarRng(){ if(rngLigado){ Math.random = randomOriginal; rngLigado=false } }
+function definirEstadoRng(valor){if(rngLigado&&rngSetState)rngSetState(valor)}
+function desligarRng(){
+  if(rngLigado){Math.random=randomOriginal;rngLigado=false}
+  rngSetState=null;rngState=0;
+}
 
-function iniciarPartidaOnline(semente){
-  emPartidaOnline=true;
+/* A rodada só avança quando o anfitrião confirma. Isso mantém as duas
+   telas no mesmo turno, mesmo quando o jogador 2 toca em "próxima" primeiro. */
+let proximoOriginal=null, textoProximoOriginal='', avancoSolicitado=false;
+let avancoRecebido=null, timerAvancoCliente=null;
+function numeroRodada(){ return Number(window.st&&window.st.rd)||1 }
+function instalarControleAvanco(){
+  const botao=$$('next');
+  if(!botao || botao.dataset.onlineHook) return false;
+  proximoOriginal=botao.onclick;
+  textoProximoOriginal=botao.textContent||'PRÓXIMA RODADA ▶';
+  botao.onclick=function(ev){
+    if(!emPartidaOnline) return proximoOriginal&&proximoOriginal.call(this,ev);
+    if(ev) ev.preventDefault();
+    if(avancoSolicitado) return;
+    if(!meuSlot){ sistemaChat('Espectadores acompanham a rodada; só os jogadores podem avançar.'); return }
+    if(this.style.display==='none') return;
+    avancoSolicitado=true;
+    this.disabled=true; this.textContent='⏳ AGUARDANDO…';
+    env('proxima',{rodada:numeroRodada()});
+  };
+  botao.dataset.onlineHook='true';
+  return true;
+}
+function restaurarBotaoAvanco(){
+  const b=$$('next'); if(!b) return;
+  b.disabled=false; b.textContent=textoProximoOriginal||'PRÓXIMA RODADA ▶';
+}
+function cancelarAvanco(texto){
+  avancoSolicitado=false; avancoRecebido=null;
+  if(timerAvancoCliente){clearTimeout(timerAvancoCliente);timerAvancoCliente=null}
+  restaurarBotaoAvanco();
+  if(texto) sistemaChat(texto);
+}
+function executarAvancoLocal(){
+  if(!proximoOriginal) instalarControleAvanco();
+  const b=$$('next');
+  avancoSolicitado=false; avancoRecebido=null;
+  if(timerAvancoCliente){clearTimeout(timerAvancoCliente);timerAvancoCliente=null}
+  restaurarBotaoAvanco();
+  if(b && proximoOriginal) proximoOriginal.call(b);
+  if(!souHost) setTimeout(aplicarSnapshotPendente,40);
+}
+function aceitarAvanco(id,rodada){
+  if(!salaLocal || !salaLocal.jogo) return;
+  const r=Number(rodada);
+  if(!Number.isInteger(r) || r<1 || r!==numeroRodada()) return;
+  if(salaLocal.ultimaAvancada===r) return;
+  if(salaLocal.avancoPendente) return;
+  const pedido={id,rodada:r,inicio:Date.now(),timer:null};
+  salaLocal.avancoPendente=pedido;
+  tentarAvancoHost(pedido);
+}
+function tentarAvancoHost(pedido){
+  if(!salaLocal || salaLocal.avancoPendente!==pedido || !salaLocal.jogo) return;
+  if(numeroRodada()!==pedido.rodada){salaLocal.avancoPendente=null;return}
+  const b=$$('next');
+  if(!b || b.style.display==='none'){
+    if(Date.now()-pedido.inicio>18000){
+      salaLocal.avancoPendente=null;
+      const mensagem='A rodada ainda está sendo resolvida. Tente avançar novamente em instantes.';
+      if(pedido.id===meuId) cancelarAvanco(mensagem);
+      else paraUm(pedido.id,'avancoErro',{texto:mensagem});
+      return;
+    }
+    pedido.timer=setTimeout(()=>tentarAvancoHost(pedido),160);
+    return;
+  }
+  salaLocal.avancoPendente=null;
+  salaLocal.ultimaAvancada=pedido.rodada;
+  salaLocal.sequenciaAvanco=(salaLocal.sequenciaAvanco||0)+1;
+  const mensagem={tipo:'avancar',rodada:pedido.rodada,sequencia:salaLocal.sequenciaAvanco};
+  conexoes.forEach(c=>{if(c.open){try{c.send(mensagem)}catch(e){}}});
+  executarAvancoLocal();
+}
+function aplicarAvancoRemoto(rodada){
+  if(!emPartidaOnline || souHost) return;
+  const r=Number(rodada);
+  if(!Number.isInteger(r) || r<1) return;
+  if(numeroRodada()>r){cancelarAvanco();return}
+  if(avancoRecebido && avancoRecebido.rodada===r) return;
+  avancoRecebido={rodada:r,inicio:Date.now()};
+  tentarAvancoCliente(avancoRecebido);
+}
+function tentarAvancoCliente(pedido){
+  if(!emPartidaOnline || avancoRecebido!==pedido) return;
+  if(numeroRodada()>pedido.rodada){cancelarAvanco();return}
+  if(Date.now()-pedido.inicio>18000){cancelarAvanco('A sincronização demorou demais. Aguarde a próxima atualização da sala.');return}
+  const b=$$('next');
+  if(numeroRodada()!==pedido.rodada || !b || b.style.display==='none'){
+    timerAvancoCliente=setTimeout(()=>tentarAvancoCliente(pedido),160);
+    return;
+  }
+  sincronizadoOnline=false;
+  executarAvancoLocal();
+}
+function enviarSnapshotAnfitriao(){
+  if(!emPartidaOnline||!souHost||typeof window.__getOnlineSnapshot!=='function')return;
+  const r=numeroRodada();
+  if(r===ultimaFotoAnfitriao||fotoAgendada===r)return;
+  fotoAgendada=r;
+  setTimeout(()=>{
+    if(fotoAgendada!==r)return;
+    fotoAgendada=0;
+    if(!emPartidaOnline||!souHost||!salaLocal||!salaLocal.jogo||numeroRodada()!==r)return;
+    if(window.turn!==1||(window.picked&&picked[1]))return;
+    try{
+      const snapshot=window.__getOnlineSnapshot();
+      ultimaFotoAnfitriao=r;
+      env('snapshot',{dados:{rodada:r,snapshot,rng:rngState}});
+    }catch(e){console.warn('snapshot host:',e)}
+  },60);
+}
+function aplicarSnapshotRemoto(pacote){
+  if(!emPartidaOnline||souHost||!pacote||!pacote.snapshot)return;
+  const r=Number(pacote.rodada||pacote.snapshot.st?.rd);
+  if(!Number.isInteger(r)||r<1)return;
+  if(r<numeroRodada()||r===fotoAplicada)return;
+  if(r>numeroRodada()){
+    if(!fotoPendente||r>=Number(fotoPendente.rodada))fotoPendente=pacote;
+    sincronizadoOnline=false;
+    return;
+  }
+  // Não sobrescreva uma rodada que já começou por causa de um pacote atrasado.
+  if(window.turn!==1||(window.picked&&picked[1]))return;
+  try{
+    if(typeof window.__applyOnlineSnapshot!=='function'||!window.__applyOnlineSnapshot(pacote.snapshot))return;
+    if(typeof pacote.rng==='number')definirEstadoRng(pacote.rng);
+    fotoAplicada=r; fotoPendente=null; sincronizadoOnline=true;
+  }catch(e){console.warn('snapshot recebido:',e)}
+}
+function aplicarSnapshotPendente(){
+  if(!fotoPendente||!emPartidaOnline||souHost)return;
+  if(Number(fotoPendente.rodada)<=numeroRodada()){
+    const pacote=fotoPendente;fotoPendente=null;aplicarSnapshotRemoto(pacote);
+  }
+}
+function limparSincronizacaoSnapshot(){
+  ultimaFotoAnfitriao=0;fotoAgendada=0;fotoPendente=null;fotoAplicada=0;sincronizadoOnline=false;
+  document.body.classList.remove('onlineActive');
+}
+
+function iniciarPartidaOnline(semente,config){
+  ultimaFotoAnfitriao=0;fotoAgendada=0;fotoPendente=null;fotoAplicada=0;
+  sincronizadoOnline=!!souHost;
+  jaEncerrou=false; avancoSolicitado=false; avancoRecebido=null;
+  if(salaLocal){salaLocal.ultimaAvancada=0;salaLocal.avancoPendente=null}
+  instalarControleAvanco();
+  try{
+    if(typeof window.__setOnlineConfig==='function') window.__setOnlineConfig(config||{});
+    else document.querySelectorAll('.foeSelectOverlay').forEach(x=>x.remove());
+  }catch(e){document.querySelectorAll('.foeSelectOverlay').forEach(x=>x.remove())}
+  if(window.mode!==undefined) window.mode=2;
+  emPartidaOnline=true; window.__onlineSession=true;
+  document.body.classList.add('onlineActive');
   $$('salaPainel').classList.remove('aberto');
   sistemaChat('🎮 A partida começou!');
   try{
@@ -660,12 +933,16 @@ function instalarGanchos(){
   const chooseOriginal = window.choose;
   window.choose = async function(i){
     if(emPartidaOnline){
-      const meuTurno = (window.turn===meuSlot);
-      if(!meuTurno){
-        if(typeof log==='function') log('⏳ <b>aguarde</b> — é a vez do seu adversário.');
+      if(!souHost&&!sincronizadoOnline){
+        if(typeof log==='function')log('🔄 <b>sincronizando</b> a rodada com o anfitrião…');
         return;
       }
-      env('jogada',{dados:{acao:'carta', indice:i, turno:window.turn}});
+      const meuTurno=(window.turn===meuSlot);
+      if(!meuTurno){
+        if(typeof log==='function')log('⏳ <b>aguarde</b> — é a vez do seu adversário.');
+        return;
+      }
+      env('jogada',{dados:{acao:'carta',indice:i,turno:window.turn}});
       const r = await chooseOriginal.apply(this,arguments);
       setTimeout(destravarPasseDeVez,80);
       return r;
@@ -676,8 +953,16 @@ function instalarGanchos(){
   if(typeof window.useItem==='function'){
     const itemOriginal=window.useItem;
     window.useItem=function(i){
-      if(emPartidaOnline && window.turn===meuSlot){
-        env('jogada',{dados:{acao:'item', indice:i, turno:window.turn}});
+      if(emPartidaOnline){
+        if(!souHost&&!sincronizadoOnline){
+          if(typeof log==='function')log('🔄 <b>sincronizando</b> a rodada com o anfitrião…');
+          return;
+        }
+        if(window.turn!==meuSlot){
+          if(typeof log==='function')log('⏳ <b>aguarde</b> — é a vez do seu adversário.');
+          return;
+        }
+        env('jogada',{dados:{acao:'item',indice:i,turno:window.turn}});
       }
       return itemOriginal.apply(this,arguments);
     };
@@ -686,13 +971,39 @@ function instalarGanchos(){
   if(typeof window.finish==='function'){
     const fimOriginal=window.finish;
     window.finish=function(){
+      const onlineAntes=emPartidaOnline;
       const r=fimOriginal.apply(this,arguments);
-      if(emPartidaOnline){
-        emPartidaOnline=false;
-        desligarRng();
-        env('fim',{dados:{hp1:window.st&&st.hp1, hp2:window.st&&st.hp2}});
-        setTimeout(()=>{ $$('salaPainel').classList.add('aberto') },1500);
+      if(onlineAntes && window.over){
+        emPartidaOnline=false;window.__onlineSession=false;
+        desligarRng();limparSincronizacaoSnapshot();
+        env('fim',{dados:{hp1:window.st&&st.hp1,hp2:window.st&&st.hp2}});
+        try{window.__restoreOnlineConfig&&window.__restoreOnlineConfig()}catch(e){}
+        const overlay=[...document.querySelectorAll('.overlay')].pop();
+        const repetir=overlay&&[...overlay.querySelectorAll('button.big')]
+          .find(b=>b.textContent.toUpperCase().includes('JOGAR DE NOVO'));
+        if(repetir){
+          repetir.textContent='VOLTAR À SALA';
+          repetir.onclick=()=>{
+            try{window.S&&S.click()}catch(e){}
+            overlay.remove();
+            const painel=$$('salaPainel'); if(painel) painel.classList.add('aberto');
+          };
+        }
+        setTimeout(()=>{ if($$('salaPainel')) $$('salaPainel').classList.add('aberto') },1500);
       }
+      return r;
+    };
+  }
+
+  if(typeof window.resolve==='function'){
+    const resolveOriginal=window.resolve;
+    window.resolve=function(){
+      const r=resolveOriginal.apply(this,arguments);
+      if(emPartidaOnline&&souHost)setTimeout(()=>{
+        if(!emPartidaOnline||!window.st)return;
+        env('estado',{dados:{hp1:st.hp1,hp2:st.hp2,rd:st.rd,
+                             score:st.score,mult:st.mult,turno:window.turn}});
+      },1650);
       return r;
     };
   }
@@ -702,69 +1013,27 @@ function instalarGanchos(){
     window.renderTurn=function(){
       const r=renderOriginal.apply(this,arguments);
       if(emPartidaOnline){
+        if(window.turn!==meuSlot){
+          const mao=$$('hand'),itens=$$('items'),lbl=$$('handlbl');
+          if(mao){mao.innerHTML='';const espera=document.createElement('div');espera.className='spAguardando';
+            espera.textContent='⏳ aguardando a jogada do adversário…';mao.appendChild(espera)}
+          if(itens)itens.innerHTML='';
+          if(lbl)lbl.textContent='VEZ DO ADVERSÁRIO';
+        }
         atualizarIndicadorTurno();
         // o anfitriao dita o estado depois de cada rodada
-        if(souHost) setTimeout(()=>{
-          if(!emPartidaOnline || !window.st) return;
-          env('estado',{dados:{hp1:st.hp1,hp2:st.hp2,rd:st.rd,
-                               score:st.score,mult:st.mult,turno:window.turn}});
-        },60);
+        if(souHost){
+          setTimeout(()=>{
+            if(!emPartidaOnline||!window.st)return;
+            env('estado',{dados:{hp1:st.hp1,hp2:st.hp2,rd:st.rd,
+                                 score:st.score,mult:st.mult,turno:window.turn}});
+          },60);
+          enviarSnapshotAnfitriao();
+        }
       }
       return r;
     };
   }
-  /* O truque do Deus da Comedia abre um overlay que espera um CLIQUE.
-     Online isso travaria a rodada nos dois lados. Entao escolhemos
-     automaticamente, de forma identica nas duas maquinas (semente + rodada). */
-  if(typeof window.escolherTruque==='function'){
-    const truqueOriginal = window.escolherTruque;
-    window.escolherTruque = function(){
-      if(!emPartidaOnline) return truqueOriginal.apply(this,arguments);
-      return new Promise(res=>{
-        try{
-          if(typeof heroIs!=='function' || !heroIs('comedia') || !(window.picked&&picked[2])){
-            return res();
-          }
-          const lista = window.TRUQUES||[];
-          if(!lista.length) return res();
-          // indice deterministico: mesma semente + mesma rodada = mesmo truque
-          let h=(Number(window.__semente)||0) ^ (((window.st&&st.rd)||1)*2654435761);
-          h=(h^(h>>>13))>>>0;
-          const t=lista[h%lista.length];
-          try{ t.run() }catch(e){}
-          try{ if(typeof addSan==='function') addSan(t.inst) }catch(e){}
-          try{
-            window.comediaUsos=(window.comediaUsos||0)+1;
-            window.comediaEscala=(window.comediaEscala||0)+1;
-          }catch(e){}
-          if(typeof log==='function'){
-            log(`🎭 <b>${t.ic} ${t.n}</b> — ${t.d}`);
-            log(`🌀 a piada custou <b>${t.inst}</b> de instabilidade.`);
-          }
-          if(typeof banner==='function') banner(t.n,'#ff2e88');
-        }catch(e){ console.warn('truque online:',e) }
-        res();
-      });
-    };
-  }
-
-  /* o anfitriao e a fonte da verdade: apos cada resolucao, anuncia o estado */
-  if(typeof window.resolve==='function'){
-    const resolveOriginal = window.resolve;
-    window.resolve = function(){
-      const r = resolveOriginal.apply(this,arguments);
-      if(emPartidaOnline && souHost){
-        const manda=()=>{
-          if(!emPartidaOnline || !window.st) return;
-          env('estado',{dados:{hp1:st.hp1,hp2:st.hp2,rd:st.rd,
-                               score:st.score,mult:st.mult,turno:window.turn}});
-        };
-        setTimeout(manda,400); setTimeout(manda,1400); setTimeout(manda,2600);
-      }
-      return r;
-    };
-  }
-
   return true;
 }
 
@@ -794,6 +1063,7 @@ function aplicarJogadaRemota(m){
     try{ useItem(d.indice) }catch(e){}
     emPartidaOnline=salvo;
   }
+  if(!souHost)sincronizadoOnline=true;
   setTimeout(destravarPasseDeVez,120);
   atualizarIndicadorTurno();
 }
@@ -802,7 +1072,7 @@ function aplicarEstadoRemoto(dados){
   try{
     if(typeof dados.hp1==='number') st.hp1=dados.hp1;
     if(typeof dados.hp2==='number') st.hp2=dados.hp2;
-    if(typeof dados.rd==='number')  st.rd=dados.rd;
+    // st.rd avança junto com o botão sincronizado, não por snapshot parcial.
     if(typeof dados.score==='number') st.score=dados.score;
     if(typeof dados.mult==='number')  st.mult=dados.mult;
     if(typeof dados.turno==='number' && window.turn!==undefined) window.turn=dados.turno;
@@ -845,6 +1115,7 @@ window.addEventListener('beforeunload',ev=>{
 /* ---------------- inicializacao ---------------- */
 function iniciar(){
   criarInterface();
+  instalarControleAvanco();
   if(typeof window.choose==='function') window.__chooseOriginal=window.choose;
   let tentou=0;
   const t=setInterval(()=>{
