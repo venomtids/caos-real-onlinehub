@@ -1,8 +1,8 @@
 # 🎭 CAOS REAL — versão GitHub Pages (sem servidor)
 
 Esta versão roda **inteira no navegador**. Não existe servidor, não existe
-conta de hospedagem, não existe cartão de crédito. Os dois jogadores conversam
-**direto entre si** pela internet (WebRTC).
+conta de hospedagem, não existe cartão de crédito. Até oito jogadores entram
+na mesma sala, conectados **diretamente** pela internet (WebRTC) ao navegador anfitrião.
 
 Perfeita pro GitHub Pages, que é grátis e permanente.
 
@@ -38,14 +38,14 @@ Pronto. Esse é o link. Mande pros amigos.
 
 ## Como jogar junto
 
-1. Os dois abrem o link.
-2. Um escreve o nome e clica em **🚪 CRIAR SALA** → recebe um código de
-   4 letras (ex: `PHZ5`).
-3. O outro escreve o nome, digita o código e clica em **ENTRAR**.
-4. Os dois clicam em **ESTOU PRONTO** e a partida começa sozinha.
-5. O botão **💬** abre o chat. Dá pra mandar emotes também.
+1. Os jogadores abrem o link.
+2. Uma pessoa clica em **🚪 CRIAR SALA** e recebe um código de 4 letras (ex.: `PHZ5`).
+3. Até **7 pessoas** entram com o código — a sala comporta **8 jogadores contando o anfitrião**.
+4. Todos marcam **ESTOU PRONTO**; quando todos estiverem prontos, o anfitrião clica em **INICIAR PARTIDA**.
+5. Com **2 jogadores**, a sala inicia um duelo. Com **3 a 8**, inicia o modo **todos contra todos**: cada pessoa escolhe uma carta ao mesmo tempo, e a regra e as cartas são reveladas juntas.
+6. O botão **💬** abre o chat. Dá para mandar emotes também.
 
-Quem entra depois dos dois primeiros vira **espectador** — assiste e usa o chat. Durante a partida, os nomes aparecem no HUD e no indicador de turno. Pelo painel da sala, um jogador pode **abandonar a partida** e devolver todos ao lobby sem fechar a sala; jogadas repetidas ou fora de turno são bloqueadas e a tela pode ser ressincronizada pelo anfitrião.
+Todos os lugares da sala são jogáveis. A sala não aceita novas entradas depois que a partida começou. No FFA, cada jogador tem vida própria; quem perde vida pode ser eliminado, e a última pessoa sobrevivente (ou a melhor colocada ao fim de 12 rodadas) vence. Pelo painel da sala, um jogador pode **abandonar a partida** e devolver todos ao lobby sem fechar a sala; no duelo 1 × 1, jogadas repetidas ou fora de turno são bloqueadas e a tela pode ser ressincronizada pelo anfitrião.
 
 ---
 
@@ -96,8 +96,8 @@ Pode. Suba o arquivo novo no GitHub e o site atualiza em 1–2 minutos.
 | arquivo | o que é |
 |---|---|
 | `index.html` | o jogo inteiro — 688 cartas, 24 personagens, 55 níveis |
-| `online.js` | lobby, salas, chat, conexão entre os jogadores |
-| `online.css` | visual do lobby e do painel da sala |
+| `online.js` | lobby, salas, chat, duelo 1 × 1 e modo FFA de até 8 jogadores |
+| `online.css` | visual do lobby, chat e arena todos contra todos |
 
 Nenhum outro arquivo é necessário. Não tem `npm install`, não tem build.
 

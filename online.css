@@ -222,3 +222,74 @@ body.onlineActive .actBar,
 body.onlineActive .hudbtn[onclick*="location.reload"]{
   display:none!important;
 }
+/* O lobby permanece utilizável quando a sala tem oito participantes. */
+.spJogadores{max-height:min(34vh,270px);overflow-y:auto;overscroll-behavior:contain}
+@media(max-width:640px){.spJogadores{max-height:27vh}}
+
+/* ---------- ARENA ONLINE TODOS CONTRA TODOS ---------- */
+#ffaArena{display:none;position:fixed;inset:0;z-index:250;overflow-y:auto;overscroll-behavior:contain;
+  box-sizing:border-box;padding:max(18px,env(safe-area-inset-top)) 18px max(22px,env(safe-area-inset-bottom));
+  color:#f3edff;background:radial-gradient(ellipse at 50% 0%,#291044 0%,#10091c 44%,#07050b 100%)}
+body.onlineFFA #shakeWrap{display:none!important}
+body.onlineFFA #ffaArena{display:flex;justify-content:center;align-items:flex-start}
+body.onlineFFA #turnoOnline{display:none!important}
+.ffaShell{width:min(1120px,100%);margin:auto;display:flex;flex-direction:column;gap:14px}
+.ffaHeader{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:5px 2px}
+.ffaEyebrow{font:900 9px system-ui;letter-spacing:3px;color:#c44dff;margin-bottom:4px}
+.ffaHeader h1{margin:0;font:1000 clamp(20px,4vw,34px)/1.05 system-ui;letter-spacing:1.3px;color:#fff;
+  text-shadow:0 0 22px rgba(196,77,255,.45)}
+.ffaBadge{flex:none;border:1px solid #7142a1;border-radius:999px;padding:8px 11px;color:#d8b7ff;
+  font:900 9px system-ui;letter-spacing:1.4px;background:rgba(45,18,67,.6)}
+.ffaRound{align-self:center;border:1px solid #54376e;border-radius:999px;padding:7px 14px;
+  background:rgba(15,9,24,.78);color:#d8c4ec;font:900 10px system-ui;letter-spacing:1.8px;text-align:center}
+.ffaRule{padding:14px 17px;border:1px solid rgba(196,77,255,.55);border-left:4px solid #c44dff;border-radius:12px;
+  background:linear-gradient(110deg,rgba(63,22,90,.72),rgba(22,13,34,.88));box-shadow:0 8px 24px rgba(0,0,0,.24)}
+.ffaRuleLabel{color:#c99bff;font:900 8px system-ui;letter-spacing:2.2px;margin-bottom:4px}
+.ffaRule strong{display:block;color:#fff;font:1000 clamp(15px,2.5vw,20px) system-ui;letter-spacing:.8px}
+.ffaRule p{margin:4px 0 0;color:#b7a9c7;font:600 12px/1.45 system-ui}
+.ffaStatus{min-height:18px;text-align:center;color:#8fffd2;font:800 11px/1.5 system-ui;letter-spacing:.7px}
+.ffaPlayers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.ffaPlayer{min-width:0;padding:11px;border:1px solid #3a2b4d;border-radius:12px;
+  background:linear-gradient(145deg,rgba(29,22,40,.97),rgba(13,12,19,.97));box-shadow:0 6px 18px rgba(0,0,0,.25);transition:border-color .18s,transform .18s}
+.ffaPlayer.voce{border-color:#c44dff;box-shadow:0 0 0 1px rgba(196,77,255,.18),0 8px 22px rgba(0,0,0,.28)}
+.ffaPlayer.vencedor{border-color:#f9c74f;box-shadow:0 0 18px rgba(249,199,79,.2)}
+.ffaPlayer.eliminado{opacity:.48;filter:grayscale(.8)}
+.ffaPlayerTop{display:flex;align-items:center;gap:7px;min-width:0}
+.ffaSlot{flex:none;border-radius:5px;padding:3px 6px;background:#20332c;color:#63e7a7;font:1000 9px system-ui}
+.ffaName{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f2eaff;font:800 12px system-ui}
+.ffaHp{flex:none;color:#ff8992;font:900 11px system-ui;white-space:nowrap}
+.ffaHpBar{height:5px;margin:9px 0 7px;border-radius:9px;background:#39202b;overflow:hidden}
+.ffaHpBar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#fe5f55,#ff9e6b);transition:width .35s ease}
+.ffaPlayerInfo{min-height:30px;color:#c7bed0;font:700 10px/1.45 system-ui;overflow-wrap:anywhere}
+.ffaPoints{margin-top:4px;color:#867a91;font:800 8px system-ui;letter-spacing:.7px}
+.ffaHandArea{border:1px solid #33243e;border-radius:14px;padding:14px;background:rgba(11,8,15,.74)}
+.ffaHandTitle{margin:0 0 10px;color:#d8b7ff;font:900 9px system-ui;letter-spacing:2px;text-align:center}
+.ffaHand{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.ffaCard{min-height:138px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:12px 9px;
+  border:1.5px solid #7952a1;border-radius:12px;color:#fff;cursor:pointer;text-align:center;
+  background:linear-gradient(155deg,#29183c,#15101e 74%);box-shadow:inset 0 0 18px rgba(196,77,255,.09);transition:transform .14s,border-color .14s,box-shadow .14s}
+.ffaCard:hover{transform:translateY(-3px);border-color:#c44dff;box-shadow:0 7px 20px rgba(196,77,255,.2)}
+.ffaCard:active{transform:scale(.98)}
+.ffaCardIcon{font-size:25px;line-height:1.1}
+.ffaCardName{max-width:100%;color:#f8f3ff;font:900 11px/1.25 system-ui}
+.ffaCardValue{color:#7fffd0;font:1000 11px system-ui;letter-spacing:.8px}
+.ffaCardPower{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#c99bff;font:700 8px system-ui;letter-spacing:.5px}
+.ffaHandMessage{grid-column:1/-1;padding:18px 10px;border:1px dashed #43384c;border-radius:10px;color:#a89bb5;
+  font:700 11px/1.5 system-ui;text-align:center}
+.ffaFooter{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 2px 8px;color:#827890;font:600 9px/1.4 system-ui}
+.ffaFooter button{flex:none;border:1px solid #8a3d57;border-radius:8px;padding:9px 12px;background:rgba(93,23,42,.32);
+  color:#ffabb0;font:900 9px system-ui;letter-spacing:1px;cursor:pointer}
+.ffaFooter button:hover{background:rgba(145,37,58,.4);border-color:#fe5f55}
+@media(max-width:760px){
+  #ffaArena{padding:12px max(10px,env(safe-area-inset-left)) max(88px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-right))}
+  .ffaShell{gap:10px}.ffaPlayers{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .ffaPlayer{padding:9px}.ffaPlayerInfo{min-height:28px;font-size:9px}.ffaPoints{font-size:7.5px}
+  .ffaHand{gap:7px}.ffaCard{min-height:125px;padding:9px 6px}.ffaCardName{font-size:10px}
+  .ffaFooter{align-items:flex-start;flex-direction:column;text-align:center}.ffaFooter button{width:100%;min-height:42px}
+}
+@media(max-width:390px){
+  .ffaHeader h1{font-size:19px}.ffaBadge{padding:7px 8px;font-size:8px;letter-spacing:.7px}
+  .ffaPlayerTop{gap:5px}.ffaSlot{padding:3px 5px}.ffaName{font-size:10px}.ffaHp{font-size:10px}
+  .ffaCardIcon{font-size:22px}
+}
+@media(prefers-reduced-motion:reduce){.ffaPlayer,.ffaCard,.ffaHpBar i{transition:none}.ffaCard:hover{transform:none}}

@@ -91,6 +91,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
 .card .pw{font-size:9px;font-weight:900;background:#20303c;color:#ffe9a8;border-radius:6px;
   padding:3px 4px;line-height:1.25;width:100%;margin-top:auto}
 .card .pw span{font-weight:400;opacity:.85;font-size:8.5px;display:block}
+.card .pw+.pw{margin-top:0}
 .card.p1{border-color:var(--blue)}.card.p2{border-color:var(--red)}
 .card.rara{background:linear-gradient(170deg,#e8f4ff,#b9d9f5)}
 .card.lendaria{background:linear-gradient(170deg,#fff6d8,#ffd97a);border-color:var(--gold);
@@ -4193,14 +4194,15 @@ function pv(c,who){
   let v=typeof c.v==='number'?c.v:0;
   v+=pactoBonus(c,who);
   v=pactoDobra(c,who,v);
-  if(c.pw&&who===1&&maldAtiva('sempoder')){/* maldição: poderes desligados */}
-  else if(c.pw){
-    let bonus=4;
-    if(c.pw.k==='trovao')bonus=7;
-    if(c.pw.k==='ordem_puro')v=10;
-    // os poderes DO JOGADOR enfraquecem com a corrupção
-    if(who===1&&isGod())bonus*=(1-corrPenalty());
-    v+=bonus;
+  const poderes=[c.pw,c.pw2].filter(Boolean);
+  if(!(who===1&&maldAtiva('sempoder'))){
+    poderes.forEach(p=>{
+      let bonus=p.k==='trovao'?7:4;
+      if(p.k==='ordem_puro')v=10;
+      // os poderes DO JOGADOR enfraquecem com a corrupção
+      if(who===1&&isGod())bonus*=(1-corrPenalty());
+      v+=bonus;
+    });
   }
   return v;
 }
@@ -4638,7 +4640,7 @@ function cardEl(c,cls,fn){
       <div class="n">${c.n}</div>
       <div class="v">${c.v}</div>
       <div class="e">${c.e}</div>
-      ${c.pw?`<div class="pw">${c.pw.n}<span>${c.pw.t}</span></div>`:''}
+      ${[c.pw,c.pw2].filter(Boolean).map(p=>`<div class="pw">${p.n}<span>${p.t}</span></div>`).join('')}
     </div>`;
   if(fn){el.onclick=fn;
     if(handKeyN>=0){
@@ -4993,12 +4995,13 @@ function renderTurn(){
   $('handlbl').textContent=(mode===2||isCoop()?`VEZ DE ${name(turn)} — `:'')+'ESCOLHA UMA CARTA';
   handKeyN=0;
   hands[turn].forEach((c,i)=>{const el=cardEl(c,'p'+turn,()=>choose(i));
-    if(turn===1){
-      if(cartaBloqueada(c))el.classList.add('blocked');
-      if(c.scar)el.classList.add('scar');
-      if(maldAtiva('cego'))el.classList.add('blindCard');
-      if(fusaoSel&&fusaoSel.includes(i))el.classList.add('fuseSel');
-    }el.style.animationDelay=(i*.07)+'s';h.appendChild(el);S.deal()});
+      if(turn===1){
+        if(cartaBloqueada(c))el.classList.add('blocked');
+        if(c.scar)el.classList.add('scar');
+        if(maldAtiva('cego'))el.classList.add('blindCard');
+      }
+      if(fusaoSel&&fusaoTurno===turn&&fusaoSel.includes(i))el.classList.add('fuseSel');
+      el.style.animationDelay=(i*.07)+'s';h.appendChild(el);S.deal()});
   const lb=document.createElement('div');lb.className='handlbl';lb.style.width='100%';
   lb.textContent=heroIs('mercante')
     ?'ITENS · DADO · MERCADO DE SANGUE (grátis, custa sanidade)'
@@ -5061,7 +5064,7 @@ function useItem(i){
 let lastPickIdx=0;
 async function choose(i){
   if(busy)return;
-  if(fusaoSel&&turn===1){if(fusaoClique(i))return}
+  if(fusaoSel&&fusaoTurno===turn){if(fusaoClique(i))return}
   if(turn===1&&cartaBloqueada(hands[1][i])){
     S.boom();log('🚫 <b>a maldição proíbe esta carta.</b>');return}
   busy=true;S.click();
@@ -5492,11 +5495,16 @@ function resolveInner(){
   }
   const P1=picked[1],P2=picked[2];
   const noPw=((!nullified&&rule.nopw)||evtFlags.mudo)||false;
-  const pw=p=>{const c=p===1?P1:P2;if(noPw)return null;
-    if(flags[p===1?2:1].antipower)return null;
-    if(!noPw&&((p===1?P2:P1).pw?.k==='ancora'))return (c.pw?.k==='ancora')?c.pw:null;
-    return c.pw};
-  let w1=pw(1),w2=pw(2);
+  const poderesAtivos=p=>{
+    const c=p===1?P1:P2,oposto=p===1?P2:P1;
+    if(noPw||flags[p===1?2:1].antipower)return[];
+    let poderes=[c.pw,c.pw2].filter(Boolean);
+    if([oposto.pw,oposto.pw2].some(x=>x&&x.k==='ancora'))poderes=poderes.filter(x=>x.k==='ancora');
+    return poderes;
+  };
+  const temPoder=(lista,k)=>lista.some(x=>x&&x.k===k);
+  let w1s=poderesAtivos(1),w2s=poderesAtivos(2);
+  let w1=w1s[0]||null,w2=w2s[0]||null,w1b=w1s[1]||null,w2b=w2s[1]||null;
   let a=P1.v,b=P2.v;
 
   // poderes de valor
@@ -5518,18 +5526,17 @@ function resolveInner(){
     }
     return v;
   };
-  // GRAVIDADE afeta os dois lados
-  if(w1?.k==='gravidade'){b=Math.ceil(b/2);log('🌀 GRAVIDADE esmagou os dois valores')}
-  if(w2?.k==='gravidade'){a=Math.ceil(a/2);log('🌀 GRAVIDADE esmagou os dois valores')}
-  // GLACIAL congela o rival
-  if(w1?.k==='glacial'){b-=5;log('❄ GLACIAL congelou o rival (-5)')}
-  if(w2?.k==='glacial'){a-=5;log('❄ GLACIAL congelou você (-5)')}
-  // FERRUGEM anula buffs de item do rival
-  if(w1?.k==='ferrugem'&&buffs[2]>0){log('🦠 FERRUGEM anulou os buffs do rival');buffs[2]=0}
-  if(w2?.k==='ferrugem'&&buffs[1]>0){log('🦠 FERRUGEM anulou os seus buffs');buffs[1]=0}
+  // Poderes de ambas as cartas fundidas são aplicados; efeitos globais continuam únicos.
+  if(temPoder(w1s,'gravidade')){b=Math.ceil(b/2);log('🌀 GRAVIDADE esmagou os dois valores')}
+  if(temPoder(w2s,'gravidade')){a=Math.ceil(a/2);log('🌀 GRAVIDADE esmagou os dois valores')}
+  if(temPoder(w1s,'glacial')){b-=5;log('❄ GLACIAL congelou o rival (-5)')}
+  if(temPoder(w2s,'glacial')){a-=5;log('❄ GLACIAL congelou você (-5)')}
+  if(temPoder(w1s,'ferrugem')&&buffs[2]>0){log('🦠 FERRUGEM anulou os buffs do rival');buffs[2]=0}
+  if(temPoder(w2s,'ferrugem')&&buffs[1]>0){log('🦠 FERRUGEM anulou os seus buffs');buffs[1]=0}
   let na=applyVal(a,w1,1,b),nb=applyVal(b,w2,2,a);
-  if(na!==a)log(`🔮 ${name(1)}: <b>${w1.n}</b> → valor ${a} vira ${na}`);
-  if(nb!==b)log(`🔮 ${name(2)}: <b>${w2.n}</b> → valor ${b} vira ${nb}`);
+  if(w1b)na=applyVal(na,w1b,1,b);if(w2b)nb=applyVal(nb,w2b,2,a);
+  if(na!==a)log(`🔮 ${name(1)}: <b>${w1&&w1.n||'PODER DUPLO'}</b> → valor ${a} vira ${na}`);
+  if(nb!==b)log(`🔮 ${name(2)}: <b>${w2&&w2.n||'PODER DUPLO'}</b> → valor ${b} vira ${nb}`);
   a=na;b=nb;
 
   // itens copy
@@ -5549,7 +5556,7 @@ function resolveInner(){
   }
 
   // furtivo / regra
-  const skip1=w1?.k==='furtivo'||P1.ordem,skip2=w2?.k==='furtivo'||P2.ordem;
+  const skip1=temPoder(w1s,'furtivo')||P1.ordem,skip2=temPoder(w2s,'furtivo')||P2.ordem;
   let ra=a,rb=b;
   if(!nullified){const r=rule.f(a,b,st);ra=skip1?a:r[0];rb=skip2?b:r[1]}
   if(skip1||skip2)log('🌫 FURTIVO ignorou a regra do caos');
@@ -5557,12 +5564,12 @@ function resolveInner(){
 
   // vencedor
   let winner=a>b?1:(b>a?2:0);
-  if(winner===0){if(w1?.k==='teimoso')winner=1;else if(w2?.k==='teimoso')winner=2;if(winner)log('😤 TEIMOSO venceu o empate')}
+  if(winner===0){if(temPoder(w1s,'teimoso'))winner=1;else if(temPoder(w2s,'teimoso'))winner=2;if(winner)log('😤 TEIMOSO venceu o empate')}
   if(winner===0&&heroIs('espelhista')){winner=1;log('🪞 <b>REFLEXO</b>: o empate conta como sua vitória.')}
   // fênix
   if(winner&&!noPw){
-    const lo=winner===1?2:1,wl=lo===1?w1:w2;
-    if(wl?.k==='fenix'&&!flags[lo].revived){
+    const lo=winner===1?2:1,poderesPerdedor=lo===1?w1s:w2s;
+    if(temPoder(poderesPerdedor,'fenix')&&!flags[lo].revived){
       flags[lo].revived=1;(lo===1?a=a+5:b=b+5);
       log(`🔥 FÊNIX de ${name(lo)} reviveu com +5!`);S.legend();
       winner=a>b?1:(b>a?2:0);
@@ -5573,6 +5580,7 @@ function resolveInner(){
   if(heroIs('sabio')){
     a=P1.v+buffs[1];
     if(w1&&!noPw)a=applyVal(a,w1,1,b);
+    if(w1b&&!noPw)a=applyVal(a,w1b,1,b);
     log('📚 <b>SABEDORIA</b>: a regra do caos não alterou o seu valor.');
     winner=a>b?1:(b>a?2:0);
   }
@@ -5583,14 +5591,15 @@ function resolveInner(){
     winner=a>b?1:(b>a?2:0);
   }
   // CORRUPÇÃO: quanto mais a Ordem cai, mais os SEUS poderes falham
-  if(isGod()&&w1&&Math.random()<corrPenalty()*.8){
-    w1=null;
-    log(`⚔ <b>a CORRUPÇÃO devorou o poder da sua carta</b> (${Math.round(corrPenalty()*100)}% de falha).`);
+  if(isGod()&&w1s.length&&Math.random()<corrPenalty()*.8){
+    w1s=[];w1=null;w1b=null;
+    log(`⚔ <b>a CORRUPÇÃO devorou os poderes da sua carta</b> (${Math.round(corrPenalty()*100)}% de falha).`);
     flash('#c1121f33');
   }
-  // ANULAÇÃO do Vazio: seus poderes podem falhar
-  if(vsFoe()&&foe.pass.k==='void'&&w1&&Math.random()<.35){
-    log('🕳 O VAZIO anulou o poder da sua carta!');flash('#3d1c5544')}
+  // ANULAÇÃO do Vazio: os poderes da carta podem falhar
+  if(vsFoe()&&foe.pass.k==='void'&&w1s.length&&Math.random()<.35){
+    w1s=[];w1=null;w1b=null;
+    log('🕳 O VAZIO anulou os poderes da sua carta!');flash('#3d1c5544')}
   // EVENTO: segunda regra em vigor
   if(evtFlags.rule2&&!nullified){
     const r2=evtFlags.rule2.f(a,b,st);a=r2[0];b=r2[1];
@@ -5634,14 +5643,15 @@ function resolveInner(){
 
   if(winner){
     const lo=winner===1?2:1;
-    const ww=winner===1?w1:w2, wl=lo===1?w1:w2;
+    const ww=winner===1?w1:w2,wl=lo===1?w1:w2;
+    const wwP=winner===1?w1s:w2s,wlP=lo===1?w1s:w2s;
     if(flags[winner].thorns)dmg*=2;
-    if(ww?.k==='duplo'){dmg=Math.round(dmg*1.5);log('⚔ DUPLO GOLPE: dano +50%')}
-    if(ww?.k==='juiz'){dmg=7;log('⚖ JUIZ: dano fixo de 7')}
-    const tsu=ww?.k==='tsunami';
+    if(temPoder(wwP,'duplo')){dmg=Math.round(dmg*1.5);log('⚔ DUPLO GOLPE: dano +50%')}
+    if(temPoder(wwP,'juiz')){dmg=7;log('⚖ JUIZ: dano fixo de 7')}
+    const tsu=temPoder(wwP,'tsunami');
     if(tsu)log('🌊 TSUNAMI: o dano ignora escudos e blindagem');
-    if(ww?.k==='apocalipse'&&Math.abs(a-b)>=10){dmg*=3;log('☄ APOCALIPSE: venceu por 10+ → dano TRIPLO')}
-    if(wl?.k==='blindado'&&!tsu){dmg=Math.max(1,Math.round(dmg/2));log('🛡 BLINDADO reduziu o dano pela metade')}
+    if(temPoder(wwP,'apocalipse')&&Math.abs(a-b)>=10){dmg*=3;log('☄ APOCALIPSE: venceu por 10+ → dano TRIPLO')}
+    if(temPoder(wlP,'blindado')&&!tsu){dmg=Math.max(1,Math.round(dmg/2));log('🛡 BLINDADO reduziu o dano pela metade')}
     if(flags[lo].shield&&!tsu){dmg=0;log(`🛡 ${name(lo)} bloqueou tudo com o ESCUDO!`)}
     // SOMBRA: 30% de esquiva total
     if(lo===1&&heroIs('sombra')&&Math.random()<.3){dmg=0;
@@ -5671,16 +5681,16 @@ function resolveInner(){
     if(dmg)floatTxt($('h'+lo),'-'+dmg,'#fe5f55');
     if(lo===1&&dmg)faceDano();
     log(`${winner===1?'✅':'💀'} <b>${name(winner)}</b> venceu — ${name(lo)} perde <b>${dmg}</b>`);
-    if(ww?.k==='vampiro'&&dmg){const h=Math.ceil(dmg/2);st['hp'+winner]=Math.min(20,st['hp'+winner]+h);floatTxt($('h'+winner),'+'+h,'#3ddc97');log(`🧛 VAMPIRO curou ${h}`)}
-    if(ww?.k==='ladrao'){st['hp'+lo]-=2;st['hp'+winner]=Math.min(20,st['hp'+winner]+2);log('🗡 LADRÃO roubou 2 de vida')}
-    if(wl?.k==='explosivo'){st['hp'+winner]-=3;floatTxt($('h'+winner),'-3','#f9c74f');log('💥 EXPLOSIVO causou 3 no vencedor')}
-    if(wl?.k==='curandeiro'){st['hp'+lo]=Math.min(20,st['hp'+lo]+3);log('💚 CURANDEIRO curou 3 mesmo perdendo')}
-    if(ww?.k==='praga'||wl?.k==='praga'){const src=ww?.k==='praga'?winner:lo,tg=src===1?2:1;st['hp'+tg]-=2;log('🦠 PRAGA drenou 2')}
-    if(ww?.k==='toxico'){st['hp'+lo]-=3;floatTxt($('h'+lo),'-3','#9dff4d');log('☠ TÓXICO envenenou por mais 3')}
-    if(ww?.k==='trovao'){st['hp'+lo]-=2;floatTxt($('h'+lo),'-2','#ffe066');log('⚡ TROVÃO causou 2 de dano direto')}
-    if(ww?.k==='eco'){setTimeout(()=>{st['hp'+lo]-=3;floatTxt($('h'+lo),'-3','#bfe4ff');
+    if(temPoder(wwP,'vampiro')&&dmg){const h=Math.ceil(dmg/2);st['hp'+winner]=Math.min(20,st['hp'+winner]+h);floatTxt($('h'+winner),'+'+h,'#3ddc97');log(`🧛 VAMPIRO curou ${h}`)}
+    if(temPoder(wwP,'ladrao')){st['hp'+lo]-=2;st['hp'+winner]=Math.min(20,st['hp'+winner]+2);log('🗡 LADRÃO roubou 2 de vida')}
+    if(temPoder(wlP,'explosivo')){st['hp'+winner]-=3;floatTxt($('h'+winner),'-3','#f9c74f');log('💥 EXPLOSIVO causou 3 no vencedor')}
+    if(temPoder(wlP,'curandeiro')){st['hp'+lo]=Math.min(20,st['hp'+lo]+3);log('💚 CURANDEIRO curou 3 mesmo perdendo')}
+    if(temPoder(wwP,'praga')||temPoder(wlP,'praga')){const src=temPoder(wwP,'praga')?winner:lo,tg=src===1?2:1;st['hp'+tg]-=2;log('🦠 PRAGA drenou 2')}
+    if(temPoder(wwP,'toxico')){st['hp'+lo]-=3;floatTxt($('h'+lo),'-3','#9dff4d');log('☠ TÓXICO envenenou por mais 3')}
+    if(temPoder(wwP,'trovao')){st['hp'+lo]-=2;floatTxt($('h'+lo),'-2','#ffe066');log('⚡ TROVÃO causou 2 de dano direto')}
+    if(temPoder(wwP,'eco')){setTimeout(()=>{st['hp'+lo]-=3;floatTxt($('h'+lo),'-3','#bfe4ff');
       log('🔊 ECO atacou de novo por 3');upd();if(st.hp1<=0||st.hp2<=0)finish()},700)}
-    if(wl?.k==='osmose'){st['hp'+lo]=Math.min(20,st['hp'+lo]+4);floatTxt($('h'+lo),'+4','#3ddc97');log('💧 OSMOSE drenou 4 de volta')}
+    if(temPoder(wlP,'osmose')){st['hp'+lo]=Math.min(20,st['hp'+lo]+4);floatTxt($('h'+lo),'+4','#3ddc97');log('💧 OSMOSE drenou 4 de volta')}
     if(!nullified&&rule.rec){st['hp'+winner]-=2;floatTxt($('h'+winner),'-2','#f9c74f');log('🩸 pacifismo falso: o vencedor também toma 2')}
     // pontuação
     if(winner===1){
@@ -6236,33 +6246,42 @@ function acusar(){
 /* ==================================================================
    6) FUSÃO DE CARTAS
    ================================================================== */
-let fusaoSel=null, fusaoUsos=1;
+let fusaoSel=null, fusaoUsos=1, fusaoTurno=null;
 function fundirModo(){
   if(window.__onlineSession||fusaoUsos<=0||busy||over)return;
-  fusaoSel=fusaoSel===null?[]:null;
+  const humano=(mode===1&&turn===1)||(mode===2&&(turn===1||turn===2))||(mode===3&&(turn===1||turn===3));
+  if(!humano){log('🧬 a FUSÃO só pode ser preparada no turno de um jogador humano.');return}
+  const mao=hands[turn]||[];
+  if(fusaoSel===null&&mao.length<2){log('🧬 são necessárias ao menos duas cartas na sua mão para fundir.');return}
+  if(fusaoSel===null){fusaoSel=[];fusaoTurno=turn}
+  else{fusaoSel=null;fusaoTurno=null}
   const b=$('fundirBtn');
   if(fusaoSel){b.classList.add('on');b.textContent='🧬 ESCOLHA 2 CARTAS';
-    log('🧬 <b>FUSÃO</b>: clique em duas cartas da sua mão. elas viram uma só.');}
+    log(`🧬 <b>FUSÃO</b>: escolha duas cartas da mão de ${name(fusaoTurno)}.`)}
   else{b.classList.remove('on');b.textContent='🧬 FUNDIR ('+fusaoUsos+')'}
   renderTurn();
 }
 function fusaoClique(i){
   if(!fusaoSel)return false;
+  const dono=Number(fusaoTurno),mao=hands[dono]||[];
+  if(dono!==turn||!Number.isInteger(i)||!mao[i]){fusaoSel=null;fusaoTurno=null;renderTurn();return false}
+  if((mao[i].puz)||(dono===1&&cartaBloqueada(mao[i]))){S.boom();log('🧬 esta carta não pode ser fundida.');return true}
   if(fusaoSel.includes(i)){fusaoSel=fusaoSel.filter(x=>x!==i);renderTurn();return true}
   fusaoSel.push(i);
   if(fusaoSel.length<2){S.click();renderTurn();return true}
-  const [a,b]=fusaoSel.map(x=>hands[1][x]);
+  const [a,b]=fusaoSel.map(x=>mao[x]);
+  if(!a||!b){fusaoSel=null;fusaoTurno=null;renderTurn();return true}
   const nova={
     v:clamp(a.v+b.v,1,40),
     n:(a.n.split(' ')[0]+'-'+b.n.split(' ').slice(-1)[0]).slice(0,26),
     e:'duas coisas que não deviam se tocar',
     ic:(a.ic||'★')+(b.ic||''),
-    el:a.el||b.el, r:'lendaria', fused:true,
-    pw:a.pw||b.pw, pw2:(a.pw&&b.pw)?b.pw:null
+    el:a.el||b.el,r:'lendaria',fused:true,
+    pw:a.pw||b.pw,pw2:(a.pw&&b.pw)?b.pw:null
   };
-  hands[1]=hands[1].filter((_,i2)=>!fusaoSel.includes(i2));
-  hands[1].push(nova);
-  fusaoUsos--;fusaoSel=null;
+  hands[dono]=mao.filter((_,i2)=>!fusaoSel.includes(i2));
+  hands[dono].push(nova);
+  fusaoUsos--;fusaoSel=null;fusaoTurno=null;
   S.legend();banner('FUSÃO!','#c44dff');
   log(`🧬 <b>FUSÃO</b>: ${a.n} + ${b.n} = <b>${nova.n}</b> (valor ${nova.v}${nova.pw2?', dois poderes':''})`);
   const bt=$('fundirBtn');if(bt){bt.classList.remove('on');bt.textContent='🧬 FUNDIR ('+fusaoUsos+')';
@@ -6575,7 +6594,7 @@ function startNewRun(){
   corr=100;corrLost=0;godMem={vals:[],slots:[],els:{},pws:0,plays:0};
   heroFlags={revived:false};
   pactos=[];mald=null;maldRestam=0;resetAposta();acusacoes=1;trapacaAtual=null;
-  fusaoUsos=1;fusaoSel=null;achCount={};comediaUsos=0;comediaEscala=0;nullifyRule=false;
+  fusaoUsos=1;fusaoSel=null;fusaoTurno=null;achCount={};comediaUsos=0;comediaEscala=0;nullifyRule=false;
   dossie={cartas:[],maior:null,guardada:null,dadoIgn:0,dadoRuim:0,itensNaoUsados:0,
     viradas:0,piorRodada:null,melhorRodada:null,repetiu:0,ultima:null};
   if(survival){survKills=0;proximoInimigo()}
@@ -6670,8 +6689,15 @@ $('liteBtn').onclick=()=>{
   S.click();
 };
 $('sfxBtn').onclick=()=>{sfx=!sfx;$('sfxBtn').textContent=sfx?'🔊 SOM: LIGADO':'🔇 SOM: MUDO';if(sfx)S.click()};
-$('foeBtn').onclick=()=>{if(busy){log('⛔ termine a rodada antes de trocar de oponente.');return}S.click();chooseFoe(false)};
+$('foeBtn').onclick=()=>{
+  if(window.__onlineSession){log('🌐 o oponente fica bloqueado durante a partida online.');return}
+  if(busy){log('⛔ termine a rodada antes de trocar de oponente.');return}
+  S.click();chooseFoe(false);
+};
 $('modeBtn').onclick=()=>{
+  if(window.__onlineSession){log('🌐 os modos locais ficam bloqueados durante a partida online.');return}
+  if(busy){log('⛔ aguarde a resolução da rodada antes de trocar de modo.');return}
+  if(st.rd>1||st.w||st.l||st.e){log('⛔ o modo só pode ser trocado antes da primeira jogada; comece uma nova partida primeiro.');return}
   mode=mode===1?2:(mode===2?3:1);
   $('modeBtn').textContent=mode===1?'👥 MODO: 1 JOGADOR':(mode===2?'👥 MODO: 2 JOGADORES':'🤝 MODO: 2 vs 1 (COOP)');
   document.body.classList.toggle('coop',mode===3);
@@ -6722,8 +6748,9 @@ log('🔥 <b>NÍVEIS DE APOSTA</b> e <b>MODO SOBREVIVÊNCIA</b> também ficam no
 /* ---- INÍCIO ---- */
 loadSave();loadScars();loadAchs();loadStake();updHeroBox();
 renderPactos();renderMald();
-// no modo Deus do Caos você joga como o Deus da Ordem por padrão
-chooseFoe(true);
+// O lobby já é a tela inicial. A escolha de oponente fica apenas no botão
+// TROCAR OPONENTE; o atalho JOGAR SOZINHO inicia contra o Gremlin padrão.
+
 
 /* ---- ponte para a camada online: expoe o que ela precisa ----
    cada item em seu proprio try: se um falhar, os outros continuam */
@@ -6734,7 +6761,16 @@ chooseFoe(true);
   for(const k in fn){ try{ window[k]=fn[k] }catch(e){} }
   try{ window.SOM=S }catch(e){}
   try{ Object.defineProperty(window,'S',{value:S,writable:true,configurable:true}) }catch(e){}
-  try{ window.TRUQUES=TRUQUES }catch(e){}
+  try{window.TRUQUES=TRUQUES}catch(e){}
+  try{window.ONLINE_RULES=RULES}catch(e){}
+  try{window.ONLINE_BEATS=BEATS}catch(e){}
+  try{
+    window.__startSoloRun=function(){
+      mode=1;document.body.classList.remove('coop','godmode');
+      const mb=$('modeBtn');if(mb)mb.textContent='👥 MODO: 1 JOGADOR';
+      if(typeof startNewRun==='function')startNewRun();
+    };
+  }catch(e){}
   try{
     window.__setOnlineConfig=function(config){
       config=config||{};
@@ -6772,7 +6808,7 @@ chooseFoe(true);
       return JSON.parse(JSON.stringify({
         st,turn,hands,inv,picked,buffs,flags,rule,nullified,isBoss,chaosRound,san,corr,corrLost,
         nextVisible:$('next').style.display!=='none',dieRolls,dieUsed,evtFlags,extraRules,activeMut,mutRounds,pactos,mald,maldRestam,
-        kingBonus,kingRigged,orderCooldown,cronTick,aposta,trapacaAtual,acusacoes,fusaoSel,fusaoUsos,
+        kingBonus,kingRigged,orderCooldown,cronTick,aposta,trapacaAtual,acusacoes,fusaoSel,fusaoUsos,fusaoTurno,
         comediaUsos,comediaEscala,nullifyRule,heroFlags,anomaliaAtual,sanRising,survival,survKills,
         caosDespertou,semDone,lastSanTaunt,lastSanSeen,barCooldown,barWasOpen
       }));
@@ -6807,6 +6843,7 @@ chooseFoe(true);
         cronTick=Number(s.cronTick)||0;aposta=Number(s.aposta)||0;
         trapacaAtual=s.trapacaAtual||null;acusacoes=Number(s.acusacoes)||1;
         fusaoSel=s.fusaoSel||null;fusaoUsos=Number.isFinite(s.fusaoUsos)?s.fusaoUsos:1;
+        fusaoTurno=Number.isInteger(s.fusaoTurno)?s.fusaoTurno:null;
         comediaUsos=Number(s.comediaUsos)||0;comediaEscala=Number(s.comediaEscala)||0;
         nullifyRule=!!s.nullifyRule;heroFlags=s.heroFlags||{revived:false};anomaliaAtual=s.anomaliaAtual||null;
         sanRising=!!s.sanRising;survival=false;survKills=Number(s.survKills)||0;

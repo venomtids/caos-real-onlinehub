@@ -18,11 +18,14 @@ let conexoes=new Map();      // anfitriao -> id do jogador => conexao
 let salaLocal=null;          // anfitriao -> os dados da sala
 let tentativasCod=0;
 let sequenciaJogada=0;
+let ffaAtiva=false, ffaLocal={estado:null,mao:[],pendente:false};
+let ffaTimerHost=null, ffaTimerReveal=null;
+const FFA_MAX_RODADAS=12, FFA_TEMPO_ESCOLHA=35000;
 const sequenciasAceitas=new Map();
 const sequenciasAplicadas=new Map();
 
 function assinaturaCarta(c){
-  return c?JSON.stringify([c.n,c.v,c.e,c.ic,c.el,c.r,c.pw&&c.pw.k,c.puz&&c.puz.k,
+  return c?JSON.stringify([c.n,c.v,c.e,c.ic,c.el,c.r,c.pw&&c.pw.k,c.pw2&&c.pw2.k,c.puz&&c.puz.k,
     !!c.god,!!c.ordem,!!c.scar,!!c.furtivo,!!c.puzWon]):'';
 }
 function assinaturaItem(it){
@@ -250,9 +253,8 @@ function listaJogadores(){
 }
 function slotsLivres(){
   const usados=new Set([...salaLocal.jogadores.values()].map(j=>j.slot));
-  if(!usados.has(1)) return 1;
-  if(!usados.has(2)) return 2;
-  return 0;                                    // 0 = espectador
+  for(let slot=1;slot<=LIMITE_SALA;slot++)if(!usados.has(slot))return slot;
+  return 0;
 }
 function paraTodos(tipo,dados,exceto){
   const m={tipo,...dados};
@@ -269,14 +271,309 @@ function paraUm(id,tipo,dados){
 function sincronizar(){
   paraTodos('sala',{codigo:salaLocal.codigo, jogadores:listaJogadores(), host:salaLocal.host});
 }
+function clonarCartaFFA(carta){return carta?JSON.parse(JSON.stringify(carta)):null}
+function garantirArenaFFA(){
+  let arena=$$('ffaArena');if(arena)return arena;
+  arena=document.createElement('section');arena.id='ffaArena';arena.setAttribute('aria-label','Arena todos contra todos');
+  arena.innerHTML=`<main class="ffaShell">
+    <header class="ffaHeader"><div><div class="ffaEyebrow">CAOS REAL · ONLINE</div><h1>⚔ TODOS CONTRA TODOS</h1></div>
+      <div class="ffaBadge">ATÉ 8 JOGADORES</div></header>
+    <div class="ffaRound" id="ffaRound">Preparando arena…</div>
+    <section class="ffaRule"><div class="ffaRuleLabel">REGRA DO CAOS</div><strong id="ffaRuleName">—</strong><p id="ffaRuleDesc">Aguarde o anfitrião.</p></section>
+    <div class="ffaStatus" id="ffaStatus" aria-live="polite">Conectando jogadores…</div>
+    <section class="ffaPlayers" id="ffaPlayers" aria-label="Jogadores"></section>
+    <section class="ffaHandArea"><div class="ffaHandTitle" id="ffaHandTitle">SUA MÃO</div><div class="ffaHand" id="ffaHand"></div></section>
+    <footer class="ffaFooter"><span>Escolham ao mesmo tempo. A regra e todas as cartas são reveladas juntas.</span>
+      <button id="ffaLeave" type="button">ABANDONAR PARTIDA</button></footer>
+  </main>`;
+  document.body.appendChild(arena);
+  const leave=$$('ffaLeave');if(leave)leave.onclick=()=>{
+    if(ffaLocal.estado&&ffaLocal.estado.phase==='finished'){voltarAoLobby();return}
+    if(window.confirm('Abandonar a partida devolverá todos os jogadores ao lobby. Continuar?'))env('abandono',{});
+  };
+  return arena;
+}
+function valorExibidoFFA(valor){
+  const n=Number(valor);if(!Number.isFinite(n))return'—';
+  return Number.isInteger(n)?String(n):n.toFixed(1).replace(/\.0$/,'');
+}
+function renderFFA(){
+  if(!ffaAtiva)return;
+  garantirArenaFFA();
+  const s=ffaLocal.estado;
+  const round=$$('ffaRound'),ruleName=$$('ffaRuleName'),ruleDesc=$$('ffaRuleDesc');
+  const status=$$('ffaStatus'),grid=$$('ffaPlayers'),hand=$$('ffaHand'),handTitle=$$('ffaHandTitle'),leave=$$('ffaLeave');
+  if(!s){
+    if(round)round.textContent='ARENA ONLINE';
+    if(ruleName)ruleName.textContent='—';if(ruleDesc)ruleDesc.textContent='Aguarde o anfitrião preparar as cartas.';
+    if(status)status.textContent='Conectado. Sincronizando a partida…';
+    if(grid)grid.innerHTML='';if(hand)hand.innerHTML='';
+    if(leave)leave.textContent='ABANDONAR PARTIDA';
+    return;
+  }
+  const vivos=s.players.filter(p=>p.alive);
+  if(round)round.textContent=`RODADA ${s.round} / ${s.maxRounds} · ${vivos.length} VIVOS`;
+  if(ruleName)ruleName.textContent=s.ruleName||'REGRA DO CAOS';
+  if(ruleDesc)ruleDesc.textContent=s.ruleDesc||'A maior pontuação leva a rodada.';
+  if(status){
+    if(s.phase==='pick'){
+      const escolhidas=vivos.filter(p=>p.selected).length;
+      const eu=s.players.find(p=>Number(p.slot)===Number(meuSlot));
+      status.textContent=eu&&!eu.alive?'Você foi eliminado. Acompanhe o desfecho da partida.':
+        `${escolhidas} de ${vivos.length} escolhas recebidas · escolha uma carta oculta; após 35 s, escolhas faltantes são automáticas.`;
+    }else if(s.phase==='show')status.textContent=`CARTAS REVELADAS · ${s.winners.length?`J${s.winners.join(' e J')}${s.winners.length===1?' VENCEU':' EMPATARAM'}`:'rodada resolvida'}`;
+    else status.textContent=s.championName?(s.winners.length>1?`🏆 EMPATE ENTRE: ${s.championName}`:`🏆 CAMPEÃO: ${s.championName}`):'Partida encerrada.';
+  }
+  if(grid){
+    grid.innerHTML='';
+    const jogadores=s.phase==='finished'?[...s.players].sort((a,b)=>Number(b.alive)-Number(a.alive)||b.hp-a.hp||b.score-a.score||b.wins-a.wins):s.players;
+    jogadores.forEach(p=>{
+      const card=document.createElement('article');
+      card.className='ffaPlayer'+(p.alive?'':' eliminado')+(Number(p.slot)===Number(meuSlot)?' voce':'')+(s.winners.includes(Number(p.slot))?' vencedor':'');
+      const topo=document.createElement('div');topo.className='ffaPlayerTop';
+      const tag=document.createElement('span');tag.className='ffaSlot';tag.textContent='J'+p.slot;
+      const nome=document.createElement('strong');nome.className='ffaName';nome.textContent=p.name||('JOGADOR '+p.slot);
+      const vida=document.createElement('span');vida.className='ffaHp';vida.textContent=`${Math.max(0,p.hp)} ❤`;
+      topo.append(tag,nome,vida);card.appendChild(topo);
+      const trilho=document.createElement('div');trilho.className='ffaHpBar';
+      const barra=document.createElement('i');barra.style.width=`${Math.max(0,Math.min(100,Number(p.hp)/20*100))}%`;trilho.appendChild(barra);card.appendChild(trilho);
+      const info=document.createElement('div');info.className='ffaPlayerInfo';
+      if(s.phase==='pick')info.textContent=!p.alive?'ELIMINADO':(p.selected?(p.auto?'⌛ escolha automática':'✓ escolheu'):'pensando…');
+      else if(!p.cardName)info.textContent='ELIMINADO';
+      else{
+        const carta=`${p.cardIcon||'🃏'} ${p.cardName}`;
+        const valor=p.value===null||p.value===undefined?'':` · ${valorExibidoFFA(p.value)}`;
+        const dano=Number(p.damage)>0?` · −${p.damage} vida`:'';
+        info.textContent=`${carta}${valor}${dano}${p.result?` · ${p.result}`:''}`;
+      }
+      card.appendChild(info);
+      const pontos=document.createElement('div');pontos.className='ffaPoints';pontos.textContent=`${p.score} pts · ${p.wins} vitórias`;
+      card.appendChild(pontos);grid.appendChild(card);
+    });
+  }
+  if(hand){
+    hand.innerHTML='';
+    const eu=s.players.find(p=>Number(p.slot)===Number(meuSlot));
+    if(s.phase==='pick'&&eu&&eu.alive&&!eu.selected&&!ffaLocal.pendente){
+      if(handTitle)handTitle.textContent='ESCOLHA UMA CARTA';
+      ffaLocal.mao.forEach((c,i)=>{
+        const b=document.createElement('button');b.type='button';b.className='ffaCard';
+        const ic=document.createElement('span');ic.className='ffaCardIcon';ic.textContent=c.ic||'🃏';
+        const n=document.createElement('strong');n.className='ffaCardName';n.textContent=c.n||'Carta do Caos';
+        const v=document.createElement('span');v.className='ffaCardValue';v.textContent=`VALOR ${c.v}`;
+        const power=document.createElement('small');power.className='ffaCardPower';power.textContent=c.pw&&c.pw.n?`✦ ${c.pw.n}`:'SEM PODER';
+        b.append(ic,n,v,power);b.onclick=()=>escolherCartaFFA(i);hand.appendChild(b);
+      });
+      if(!ffaLocal.mao.length){const waiting=document.createElement('div');waiting.className='ffaHandMessage';waiting.textContent='Aguardando suas cartas…';hand.appendChild(waiting)}
+    }else{
+      if(handTitle)handTitle.textContent=s.phase==='finished'?'RESULTADO FINAL':'SUA MÃO';
+      const msg=document.createElement('div');msg.className='ffaHandMessage';
+      if(s.phase==='finished')msg.textContent='Partida encerrada. Volte à sala para jogar novamente.';
+      else if(s.phase==='show')msg.textContent='As cartas foram reveladas. A próxima rodada começa em instantes.';
+      else if(eu&&!eu.alive)msg.textContent='Você foi eliminado — assista até alguém conquistar a vitória.';
+      else if(eu&&eu.selected||ffaLocal.pendente)msg.textContent='Carta escolhida. Aguardando os outros jogadores…';
+      else msg.textContent='Aguardando a próxima rodada…';
+      hand.appendChild(msg);
+    }
+  }
+  if(leave)leave.textContent=s.phase==='finished'?'↩ VOLTAR À SALA':'ABANDONAR PARTIDA';
+}
+function estadoPublicoFFA(s){
+  const revelar=s.phase!=='pick';
+  return{
+    round:s.round,maxRounds:s.maxRounds,phase:s.phase,ruleName:s.ruleName,ruleDesc:s.ruleDesc,
+    winners:[...(s.winners||[])],championName:s.championName||'',
+    players:s.players.map(p=>({slot:p.slot,name:p.name,hp:p.hp,score:p.score,wins:p.wins,alive:p.alive,
+      selected:!!p.selected,auto:!!p.auto,cardName:revelar&&p.selected?p.selected.n:'',cardIcon:revelar&&p.selected?p.selected.ic:'',
+      value:revelar?p.value:null,damage:p.damage||0,result:p.result||''}))
+  };
+}
+function publicarEstadoFFA(s){
+  if(!s||!salaLocal)return;
+  const estado=estadoPublicoFFA(s);
+  const pacotePara=id=>{
+    const p=s.players.find(x=>x.id===id);
+    const mao=s.phase==='pick'&&p&&p.alive&&!p.selected?(p.hand||[]).map(clonarCartaFFA):[];
+    return{tipo:'ffaEstado',estado,mao};
+  };
+  receber(pacotePara(meuId));
+  conexoes.forEach((con,id)=>{if(con.open){try{con.send(pacotePara(id))}catch(e){}}});
+}
+function cartaNovaFFA(){
+  if(typeof window.mkCard==='function')return clonarCartaFFA(window.mkCard());
+  return{v:1+Math.floor(Math.random()*10),n:'Carta do Caos',ic:'🃏',el:'vazio',pw:null};
+}
+function iniciarRodadaFFA(s){
+  if(!souHost||!salaLocal||salaLocal.ffa!==s||s.phase==='finished')return;
+  if(ffaTimerHost){clearTimeout(ffaTimerHost);ffaTimerHost=null}
+  if(ffaTimerReveal){clearTimeout(ffaTimerReveal);ffaTimerReveal=null}
+  if(s.players.filter(p=>p.alive).length<=1||s.round>=s.maxRounds){finalizarPartidaFFA(s);return}
+  s.round++;s.phase='pick';s.winners=[];s.championName='';
+  const regras=Array.isArray(window.ONLINE_RULES)?window.ONLINE_RULES:[];
+  const regra=regras.length?regras[Math.floor(Math.random()*regras.length)]:null;
+  s.ruleName=regra&&regra.n||'NORMAL (?)';s.ruleDesc=regra&&regra.d||'A maior carta vence.';
+  s.players.forEach(p=>{
+    p.selected=null;p.value=null;p.damage=0;p.result='';p.auto=false;
+    p.hand=p.alive?[cartaNovaFFA(),cartaNovaFFA(),cartaNovaFFA()]:[];
+  });
+  publicarEstadoFFA(s);
+  ffaTimerHost=setTimeout(()=>{
+    if(!salaLocal||salaLocal.ffa!==s||s.phase!=='pick')return;
+    s.players.filter(p=>p.alive&&!p.selected).forEach(p=>{
+      p.selected=clonarCartaFFA(p.hand[Math.floor(Math.random()*p.hand.length)]);p.auto=true;
+    });
+    resolverRodadaFFA(s);
+  },FFA_TEMPO_ESCOLHA);
+}
+function valorCartaFFA(p,s,regra,vidaMedia){
+  const carta=p.selected||{},poder=carta.pw&&carta.pw.k;
+  let valor=Number(carta.v)||0;
+  if(!regra||!regra.nopw){
+    if(p.fenixBoost){valor+=5;p.fenixBoost=false}
+    switch(poder){
+      case'gigante':if(s.round%2===0)valor+=4;break;
+      case'sortudo':valor+=1+Math.floor(Math.random()*5);break;
+      case'caotico':valor=1+Math.floor(Math.random()*13);break;
+      case'maldito':valor-=3;break;
+      case'berserk':valor+=Math.min(8,Math.max(0,20-p.hp));break;
+      case'inflacao':valor+=Math.max(0,s.round-1)*2;break;
+      case'sanguinario':if(p.hp<10)valor+=6;break;
+      case'gravidade':valor=Math.ceil(valor/2);break;
+      case'miragem':if(Math.abs(valor%2)===1)valor*=2;break;
+    }
+  }
+  if(regra&&regra.n!=='ESPELHO'&&regra.n!=='ELEMENTOS FURIOSOS'&&poder!=='furtivo'){
+    try{const res=regra.f(valor,10,{hp1:p.hp,hp2:vidaMedia,rd:s.round});valor=Number(res&&res[0])}
+    catch(e){}
+  }
+  return Number.isFinite(valor)?valor:0;
+}
+function resolverRodadaFFA(s){
+  if(!souHost||!salaLocal||salaLocal.ffa!==s||s.phase!=='pick')return;
+  if(ffaTimerHost){clearTimeout(ffaTimerHost);ffaTimerHost=null}
+  const ativos=s.players.filter(p=>p.alive);
+  if(!ativos.length){finalizarPartidaFFA(s);return}
+  if(ativos.some(p=>!p.selected))return;
+  const regras=Array.isArray(window.ONLINE_RULES)?window.ONLINE_RULES:[];
+  const regra=regras.find(r=>r.n===s.ruleName)||null;
+  if(regra&&regra.n==='CURA COLETIVA')ativos.forEach(p=>p.hp=Math.min(20,p.hp+3));
+  const vidaMedia=ativos.reduce((n,p)=>n+p.hp,0)/ativos.length;
+  ativos.forEach(p=>p.value=valorCartaFFA(p,s,regra,vidaMedia));
+  if(regra&&regra.n==='ESPELHO'&&ativos.length>1){
+    const valores=ativos.map(p=>p.value);ativos.forEach((p,i)=>p.value=valores[(i+1)%valores.length]);
+  }
+  if(regra&&regra.n==='ELEMENTOS FURIOSOS'){
+    const beats=window.ONLINE_BEATS||{};
+    ativos.forEach(p=>{
+      let vence=0,perde=0;const el=p.selected&&p.selected.el;
+      if(el)ativos.forEach(q=>{if(q===p)return;const outro=q.selected&&q.selected.el;if(beats[el]===outro)vence++;if(beats[outro]===el)perde++});
+      if(vence>perde)p.value+=9;else if(perde>vence)p.value-=9;
+    });
+  }
+  const maior=Math.max(...ativos.map(p=>p.value));
+  let vencedores=ativos.filter(p=>p.value===maior);
+  if(vencedores.length>1){const teimosos=vencedores.filter(p=>p.selected&&p.selected.pw&&p.selected.pw.k==='teimoso');if(teimosos.length)vencedores=teimosos}
+  const idsVencedores=new Set(vencedores.map(p=>p.slot));
+  const regraSemPoder=!!(regra&&regra.nopw),poderVencedor=vencedores[0]&&vencedores[0].selected&&vencedores[0].selected.pw&&vencedores[0].selected.pw.k;
+  vencedores.forEach(p=>{
+    p.wins++;p.score+=10;p.streak=(p.streak||0)+1;p.hp=Math.min(20,p.hp+1);
+    if(!regraSemPoder&&p.selected&&p.selected.pw){
+      if(p.selected.pw.k==='vampiro'||p.selected.pw.k==='ladrao')p.hp=Math.min(20,p.hp+2);
+    }
+    if(regra&&regra.rec)p.hp=Math.max(0,p.hp-2);
+    if(regra&&regra.healTie&&vencedores.length>1)p.hp=Math.min(20,p.hp+regra.healTie);
+    p.result='VENCEU A RODADA';
+  });
+  const perdedores=ativos.filter(p=>!idsVencedores.has(p.slot));
+  const explosivos=regraSemPoder?0:perdedores.filter(p=>p.selected&&p.selected.pw&&p.selected.pw.k==='explosivo').length;
+  perdedores.forEach(p=>{
+    let dano=regra&&regra.fixed?Number(regra.fixed):Math.max(1,Math.min(6,Math.ceil((maior-p.value)/2)));
+    if(regra&&regra.x2)dano*=2;if(regra&&regra.x3)dano*=3;
+    if(!regraSemPoder){
+      if(poderVencedor==='duplo')dano=Math.ceil(dano*1.5);
+      if(poderVencedor==='maldito')dano*=2;
+      if(poderVencedor==='trovao')dano+=2;
+      if(poderVencedor==='juiz')dano=7;
+      if(poderVencedor==='praga')dano+=2;
+      if(poderVencedor==='toxico')dano+=3;
+      if(p.selected&&p.selected.pw&&p.selected.pw.k==='blindado'&&poderVencedor!=='tsunami')dano=Math.ceil(dano/2);
+    }
+    p.damage=dano;p.hp=Math.max(0,p.hp-dano);p.score+=Math.max(0,Math.floor(p.value/2));p.streak=0;
+    if(!regraSemPoder&&p.selected&&p.selected.pw&&p.selected.pw.k==='curandeiro')p.hp=Math.min(20,p.hp+3);
+    if(p.hp<=0&&!regraSemPoder&&p.selected&&p.selected.pw&&p.selected.pw.k==='fenix'&&!p.fenixUsed){
+      p.hp=1;p.fenixUsed=true;p.fenixBoost=true;p.alive=true;p.result='FÊNIX · REVIVEU';
+    }else if(p.hp<=0){p.hp=0;p.alive=false;p.result='ELIMINADO'}
+    else{p.alive=true;p.result=`−${dano} VIDA`}
+  });
+  if(explosivos){
+    vencedores.forEach(p=>{p.hp=Math.max(0,p.hp-explosivos*3);p.damage+=explosivos*3;if(p.hp<=0){p.alive=false;p.result='ATINGIDO PELA EXPLOSÃO'}});
+  }
+  if(regra&&regra.rec)vencedores.forEach(p=>{if(p.hp<=0)p.alive=false});
+  s.winners=vencedores.filter(p=>p.alive).map(p=>p.slot);s.phase='show';
+  publicarEstadoFFA(s);
+  ffaTimerReveal=setTimeout(()=>{
+    if(!salaLocal||salaLocal.ffa!==s||s.phase!=='show')return;
+    if(s.players.filter(p=>p.alive).length<=1||s.round>=s.maxRounds)finalizarPartidaFFA(s);
+    else iniciarRodadaFFA(s);
+  },4200);
+}
+function finalizarPartidaFFA(s){
+  if(!souHost||!salaLocal||salaLocal.ffa!==s||s.phase==='finished')return;
+  if(ffaTimerHost){clearTimeout(ffaTimerHost);ffaTimerHost=null}
+  if(ffaTimerReveal){clearTimeout(ffaTimerReveal);ffaTimerReveal=null}
+  let candidatos=s.players.filter(p=>p.alive);
+  if(!candidatos.length)candidatos=s.players;
+  candidatos.sort((a,b)=>b.hp-a.hp||b.score-a.score||b.wins-a.wins);
+  const melhor=candidatos[0];
+  s.winners=melhor?candidatos.filter(p=>p.hp===melhor.hp&&p.score===melhor.score&&p.wins===melhor.wins).map(p=>p.slot):[];
+  s.championName=s.winners.map(slot=>s.players.find(p=>p.slot===slot)?.name||('J'+slot)).join(' e ');
+  s.phase='finished';publicarEstadoFFA(s);
+  salaLocal.jogo=false;salaLocal.avancoPendente=null;salaLocal.ultimaAvancada=0;
+  salaLocal.jogadores.forEach(j=>{j.pronto=false});
+  sistemaChat(s.winners.length>1?'🏆 FFA encerrado em empate: '+s.championName+'.':'🏆 Campeão do FFA: '+s.championName+'.');
+  sincronizar();
+}
+function comecarArenaFFA(){
+  ffaAtiva=true;ffaLocal={estado:null,mao:[],pendente:false};
+  document.body.classList.add('onlineFFA','onlineActive');
+  const painel=$$('salaPainel');if(painel)painel.classList.remove('aberto');
+  garantirArenaFFA();renderFFA();
+  if(!souHost||!salaLocal){setTimeout(()=>env('ffaSync',{}),180);return}
+  const jogadores=jogadoresSala.filter(j=>Number(j.slot)>0);
+  const estado={round:0,maxRounds:FFA_MAX_RODADAS,phase:'pick',ruleName:'',ruleDesc:'',winners:[],championName:'',players:jogadores.map(j=>({
+    id:j.id,slot:Number(j.slot),name:String(j.nome||'JOGADOR').slice(0,18),hero:j.heroi||'comedia',hp:20,score:0,wins:0,streak:0,alive:true,hand:[],selected:null,value:null,damage:0,result:'',auto:false,fenixUsed:false,fenixBoost:false
+  }))};
+  salaLocal.ffa=estado;iniciarRodadaFFA(estado);
+}
+function escolherCartaFFA(indice){
+  const s=ffaLocal.estado,eu=s&&s.players.find(p=>Number(p.slot)===Number(meuSlot));
+  if(!ffaAtiva||!s||s.phase!=='pick'||!eu||!eu.alive||eu.selected||ffaLocal.pendente)return;
+  const carta=ffaLocal.mao[indice];if(!carta)return;
+  ffaLocal.pendente=true;renderFFA();
+  env('ffaEscolher',{rodada:s.round,indice,seq:++sequenciaJogada,carta:assinaturaCarta(carta)});
+}
+function comecarPartidaNaSala(){
+  if(!salaLocal||salaLocal.jogo)return false;
+  const participantes=[...salaLocal.jogadores.values()].filter(j=>j.slot>0);
+  if(participantes.length<2||!participantes.every(j=>j.pronto))return false;
+  salaLocal.jogo=true;salaLocal.ultimaAvancada=0;salaLocal.avancoPendente=null;salaLocal.ffa=null;
+  const semente=Math.floor(randomOriginal()*1e9);
+  const config={hero:(window.hero&&window.hero.id)||'comedia',foe:(window.foe&&window.foe.id)||'gremlin'};
+  const inicio={tipo:'comecar',semente,config,jogadores:listaJogadores(),ffa:participantes.length>=3};
+  // Enfileira o início nos convidados antes de o anfitrião gerar as mãos locais.
+  conexoes.forEach(c=>{if(c.open){try{c.send(inicio)}catch(e){}}});
+  receber(inicio);
+  return true;
+}
 
 function ligarConexaoDoConvidado(con){
   let idDele=null;
   con.on('data',m=>{
     if(!m || typeof m!=='object') return;
     if(m.tipo==='entrar' && !idDele){
-      if(!salaLocal || salaLocal.jogadores.size>=LIMITE_SALA){
-        try{ con.send({tipo:'erro',msg:'A sala está cheia.'}) }catch(e){}
+      if(!salaLocal||salaLocal.jogo||salaLocal.jogadores.size>=LIMITE_SALA){
+        const msg=salaLocal&&salaLocal.jogo?'A partida já começou. Aguarde a próxima sala.':'A sala está cheia (máximo de 8 jogadores).';
+        try{con.send({tipo:'erro',msg});setTimeout(()=>con.close(),250)}catch(e){}
         return;
       }
       idDele=novoId();
@@ -339,27 +636,43 @@ function tratarNoHost(id,m){
       break;
 
     case 'pronto': {
-      if(salaLocal.jogo) return;
+      if(salaLocal.jogo||!j.slot)return;
       j.pronto=!!m.pronto;
-      if(m.heroi) j.heroi=String(m.heroi).slice(0,24);
+      if(m.heroi)j.heroi=String(m.heroi).slice(0,24);
       sincronizar();
-      const jogam=[...salaLocal.jogadores.values()].filter(x=>x.slot);
-      if(jogam.length===2 && jogam.every(x=>x.pronto) && !salaLocal.jogo){
-        salaLocal.jogo=true; salaLocal.ultimaAvancada=0; salaLocal.avancoPendente=null;
-        const semente=Math.floor(randomOriginal()*1e9);
-        const config={
-          hero:(window.hero&&window.hero.id)||'comedia',
-          foe:(window.foe&&window.foe.id)||'gremlin'
-        };
-        const inicio={tipo:'comecar',semente,config,jogadores:listaJogadores()};
-        // Enfileira o início nos convidados antes do anfitrião gerar a mão local.
-        conexoes.forEach(c=>{if(c.open){try{c.send(inicio)}catch(e){}}});
-        receber(inicio);
-      }
       break;
     }
+    case 'iniciar':
+      if(id!==salaLocal.host||!souHost)return;
+      if(!comecarPartidaNaSala())paraUm(id,'sistema',{texto:'Para iniciar, são necessários pelo menos 2 jogadores e todos precisam estar prontos.'});
+      else sincronizar();
+      break;
+
+    case 'ffaSync': {
+      const s=salaLocal.ffa;if(!j.slot||!salaLocal.jogo||!s)return;
+      const p=s.players.find(x=>x.id===id);
+      const mao=s.phase==='pick'&&p&&p.alive&&!p.selected?(p.hand||[]).map(clonarCartaFFA):[];
+      paraUm(id,'ffaEstado',{estado:estadoPublicoFFA(s),mao});
+      break;
+    }
+
+    case 'ffaEscolher': {
+      const s=salaLocal.ffa,seq=Number(m.seq),ultima=sequenciasAceitas.get(id)||0;
+      const rejeitar=texto=>paraUm(id,'erroJogo',{texto});
+      if(!j.slot||!salaLocal.jogo||!s||s.phase!=='pick')return;
+      if(!Number.isSafeInteger(seq)||seq<=ultima){rejeitar('Escolha duplicada ignorada.');return}
+      const p=s.players.find(x=>x.id===id),indice=Number(m.indice);
+      if(!p||!p.alive||p.selected||Number(m.rodada)!==s.round){rejeitar('Essa rodada já avançou ou sua escolha já foi registrada.');return}
+      const carta=p.hand&&p.hand[indice];
+      if(!Number.isInteger(indice)||!carta||m.carta!==assinaturaCarta(carta)){rejeitar('Essa carta não está mais na sua mão. Aguarde a sincronização.');return}
+      sequenciasAceitas.set(id,seq);p.selected=clonarCartaFFA(carta);p.auto=false;
+      publicarEstadoFFA(s);
+      if(s.players.filter(x=>x.alive).every(x=>x.selected))resolverRodadaFFA(s);
+      break;
+    }
+
     case 'jogada': {
-      if(!j.slot || !salaLocal.jogo) return;
+      if(!j.slot || !salaLocal.jogo || ffaAtiva) return;
       const d=m.dados||{}, slot=Number(j.slot), seq=Number(d.seq);
       const ultima=sequenciasAceitas.get(id)||0;
       const rejeitar=texto=>{
@@ -406,7 +719,7 @@ function tratarNoHost(id,m){
       break;
 
     case 'proxima':
-      if(!j.slot || !salaLocal.jogo) return;
+      if(!j.slot||!salaLocal.jogo||ffaAtiva)return;
       aceitarAvanco(id,m.rodada);
       break;
 
@@ -481,6 +794,7 @@ function receber(m){
     case 'sistema': sistemaChat(m.texto); break;
     case 'erro':    mostrarErro(m.msg); break;
     case 'erroJogo':
+      if(ffaAtiva){ffaLocal.pendente=false;renderFFA()}
       sistemaChat('⚠ '+(m.texto||'Jogada recusada pelo anfitrião.'));
       if(m.snapshot)aplicarSnapshotRemoto(m.snapshot,true);
       break;
@@ -493,8 +807,17 @@ function receber(m){
     case 'comecar':
       jogadoresSala=m.jogadores||jogadoresSala;
       meuSlot=(jogadoresSala.find(j=>j.id===meuId)||{}).slot||0;
-      iniciarPartidaOnline(m.semente,m.config);
+      iniciarPartidaOnline(m.semente,m.config,!!m.ffa);
       break;
+
+    case 'ffaEstado': {
+      if(!ffaAtiva||!m.estado)return;
+      ffaLocal.estado=m.estado;ffaLocal.mao=Array.isArray(m.mao)?m.mao:[];
+      const euFFA=m.estado.players.find(p=>Number(p.slot)===Number(meuSlot));
+      if(m.estado.phase!=='pick'||(euFFA&&euFFA.selected))ffaLocal.pendente=false;
+      renderFFA();
+      break;
+    }
 
     case 'jogada': aplicarJogadaRemota(m); break;
     case 'avancar': aplicarAvancoRemoto(m.rodada); break;
@@ -552,7 +875,7 @@ function criarInterface(){
   <div id="lobbyOv">
     <div class="lobbyBox">
       <div class="lobbyLogo">CAOS<span>REAL</span></div>
-      <div class="lobbySub">jogue com seus amigos · salas privadas · chat</div>
+      <div class="lobbySub">2–8 jogadores · de 3 a 8, todos contra todos · chat</div>
 
       <div class="lobbyCampo">
         <label for="lbNome">SEU NOME</label>
@@ -607,8 +930,10 @@ function criarInterface(){
 function ligarEventos(){
   $$('lbSolo').onclick=()=>{
     modoOnline=false;
+    document.querySelectorAll('.foeSelectOverlay').forEach(x=>x.remove());
     fecharLobby();
-    if(window.S) S.click();
+    if(window.S)S.click();
+    if(typeof window.__startSoloRun==='function')window.__startSoloRun();
   };
   $$('lbCriar').onclick=()=>{
     if(conectando) return;
@@ -710,10 +1035,13 @@ function abrirSala(){
   $$('chatToggle').style.display='flex';
 }
 function voltarAoLobby(){
+  const saiuDoFFA=ffaAtiva;
   desligarRng();
   emPartidaOnline=false;window.__onlineSession=false;limparSincronizacaoSnapshot();
   try{window.__restoreOnlineConfig&&window.__restoreOnlineConfig()}catch(e){}
-  const p=$$('salaPainel'); if(p) p.classList.add('aberto');
+  if(saiuDoFFA&&typeof window.__startSoloRun==='function')window.__startSoloRun();
+  const p=$$('salaPainel');if(p)p.classList.add('aberto');
+  renderJogadores();
 }
 
 /* ---------------- jogadores e prontidao ---------------- */
@@ -733,17 +1061,21 @@ function renderJogadores(){
 }
 function renderAcao(){
   const box=$$('spAcao'); if(!box) return;
-  const jogam=jogadoresSala.filter(j=>j.slot);
+  const jogam=jogadoresSala.filter(j=>j.slot>0);
   const eu=jogadoresSala.find(j=>j.id===meuId)||{};
   box.innerHTML='';
   if(!meuSlot){
-    box.innerHTML='<div class="spAviso">👁 você está assistindo — a sala já tem 2 jogadores</div>';
+    box.innerHTML='<div class="spAviso">sala cheia — máximo de 8 participantes</div>';
     return;
   }
   if(emPartidaOnline||(salaLocal&&salaLocal.jogo)){
+    if(ffaAtiva&&ffaLocal&&ffaLocal.estado&&ffaLocal.estado.phase==='finished'){
+      const voltar=document.createElement('button');voltar.className='spPronto';
+      voltar.textContent='↩ VOLTAR À SALA';voltar.onclick=()=>voltarAoLobby();
+      box.appendChild(voltar);return;
+    }
     const aviso=document.createElement('div');aviso.className='spAviso';
-    const atual=Number(window.turn)||1;
-    aviso.textContent='Partida em andamento · vez de '+String((window.__onlinePlayerNames||{})[atual]||('JOG. '+atual));
+    aviso.textContent='Partida em andamento · '+(ffaAtiva?'todos jogam a cada rodada':'duelo 1 × 1');
     const abandonar=document.createElement('button');abandonar.className='spAbandonar';
     abandonar.textContent='⚑ ABANDONAR PARTIDA';
     abandonar.onclick=()=>{
@@ -753,14 +1085,23 @@ function renderAcao(){
     box.append(aviso,abandonar);
     return;
   }
+  const aviso=document.createElement('div');aviso.className='spAviso';
+  aviso.textContent=`${jogam.length}/8 jogadores · mínimo 2 · todos precisam estar prontos`;
+  box.appendChild(aviso);
   if(jogam.length<2){
-    box.innerHTML='<div class="spAviso">aguardando mais um jogador… mande o código!</div>';
+    const espera=document.createElement('div');espera.className='spAviso';
+    espera.textContent='aguardando mais um jogador… compartilhe o código da sala';box.appendChild(espera);
     return;
+  }
+  if(souHost&&jogam.every(j=>j.pronto)){
+    const iniciar=document.createElement('button');iniciar.className='spPronto on';
+    iniciar.textContent=jogam.length>=3?`⚔ INICIAR FFA · ${jogam.length} JOGADORES`:'▶ INICIAR DUELO · 2 JOGADORES';
+    iniciar.onclick=()=>env('iniciar',{});box.appendChild(iniciar);return;
   }
   const b=document.createElement('button');
   b.className='spPronto'+(eu.pronto?' on':'');
   b.textContent=eu.pronto?'✔ PRONTO (clique pra cancelar)':'ESTOU PRONTO';
-  b.onclick=()=>env('pronto',{pronto:!eu.pronto, heroi:(window.hero&&hero.id)||'comedia'});
+  b.onclick=()=>env('pronto',{pronto:!eu.pronto,heroi:(window.hero&&hero.id)||'comedia'});
   box.appendChild(b);
 }
 
@@ -849,7 +1190,8 @@ function instalarControleAvanco(){
   proximoOriginal=botao.onclick;
   textoProximoOriginal=botao.textContent||'PRÓXIMA RODADA ▶';
   botao.onclick=function(ev){
-    if(!emPartidaOnline) return proximoOriginal&&proximoOriginal.call(this,ev);
+    if(ffaAtiva){if(ev)ev.preventDefault();return}
+    if(!emPartidaOnline)return proximoOriginal&&proximoOriginal.call(this,ev);
     if(ev) ev.preventDefault();
     if(avancoSolicitado) return;
     if(!meuSlot){ sistemaChat('Espectadores acompanham a rodada; só os jogadores podem avançar.'); return }
@@ -980,43 +1322,47 @@ function limparSincronizacaoSnapshot(){
   ultimaFotoAnfitriao=0;fotoAgendada=0;fotoPendente=null;fotoAplicada=0;sincronizadoOnline=false;
   window.__onlinePlayerNames=null;
   sequenciaJogada=0;sequenciasAceitas.clear();sequenciasAplicadas.clear();
-  document.body.classList.remove('onlineActive');
+  if(ffaTimerHost){clearTimeout(ffaTimerHost);ffaTimerHost=null}
+  if(ffaTimerReveal){clearTimeout(ffaTimerReveal);ffaTimerReveal=null}
+  ffaAtiva=false;ffaLocal={estado:null,mao:[],pendente:false};
+  document.body.classList.remove('onlineActive','onlineFFA');
 }
 
-function iniciarPartidaOnline(semente,config){
+function iniciarPartidaOnline(semente,config,usarFFA=false){
   ultimaFotoAnfitriao=0;fotoAgendada=0;fotoPendente=null;fotoAplicada=0;
   sequenciaJogada=0;sequenciasAceitas.clear();sequenciasAplicadas.clear();
+  if(ffaTimerHost){clearTimeout(ffaTimerHost);ffaTimerHost=null}
+  if(ffaTimerReveal){clearTimeout(ffaTimerReveal);ffaTimerReveal=null}
+  ffaAtiva=false;ffaLocal={estado:null,mao:[],pendente:false};
   atualizarNomesPartida();
   sincronizadoOnline=!!souHost;
-  jaEncerrou=false; avancoSolicitado=false; avancoRecebido=null;
+  jaEncerrou=false;avancoSolicitado=false;avancoRecebido=null;
   if(salaLocal){salaLocal.ultimaAvancada=0;salaLocal.avancoPendente=null}
   instalarControleAvanco();
   try{
-    if(typeof window.__setOnlineConfig==='function') window.__setOnlineConfig(config||{});
+    if(typeof window.__setOnlineConfig==='function')window.__setOnlineConfig(config||{});
     else document.querySelectorAll('.foeSelectOverlay').forEach(x=>x.remove());
   }catch(e){document.querySelectorAll('.foeSelectOverlay').forEach(x=>x.remove())}
-  if(window.mode!==undefined) window.mode=2;
-  emPartidaOnline=true; window.__onlineSession=true;
+  if(window.mode!==undefined)window.mode=2;
+  emPartidaOnline=true;window.__onlineSession=true;
   atualizarNomesPartida();
-  document.body.classList.add('onlineActive');
-  $$('salaPainel').classList.remove('aberto');
-  sistemaChat('🎮 A partida começou!');
+  document.body.classList.add('onlineActive');document.body.classList.remove('onlineFFA');
+  const painel=$$('salaPainel');if(painel)painel.classList.remove('aberto');
+  sistemaChat(usarFFA?'⚔ FFA iniciado: todos contra todos!':'🎮 O duelo online começou!');
   try{
-    if(window.S) S.fanfare();
-    window.mode=2;
-    ligarRng(semente);
-    if(typeof startNewRun==='function'){
-      window.__semente=semente;
-      startNewRun();
+    if(window.S)S.fanfare();
+    window.mode=2;ligarRng(semente);
+    if(usarFFA){comecarArenaFFA();}
+    else{
+      if(typeof startNewRun==='function'){window.__semente=semente;startNewRun()}
+      if(typeof log==='function'){
+        const outro=jogadoresSala.find(j=>j.slot&&j.id!==meuId)||{};
+        log('🌐 <b>PARTIDA ONLINE</b> — você é o <b>JOGADOR '+meuSlot+'</b>.');
+        log('⚔ adversário: <b>'+esc(outro.nome||'?')+'</b>. Use o 💬 para conversar.');
+      }
     }
-    if(typeof log==='function'){
-      const outro=jogadoresSala.find(j=>j.slot&&j.id!==meuId)||{};
-      log('🌐 <b>PARTIDA ONLINE</b> — você é o <b>JOGADOR '+meuSlot+'</b>.');
-      log('⚔ adversário: <b>'+esc(outro.nome||'?')+'</b>. Use o 💬 para conversar.');
-    }
-  }catch(e){ console.error(e) }
-  atualizarIndicadorTurno();
-  renderJogadores();
+  }catch(e){console.error(e)}
+  atualizarIndicadorTurno();renderJogadores();
 }
 
 /* ---------- no online nao existe "passe o dispositivo" ----------
@@ -1048,6 +1394,7 @@ function instalarGanchos(){
 
   const chooseOriginal = window.choose;
   window.choose = async function(i){
+    if(ffaAtiva)return;
     if(emPartidaOnline){
       if(!souHost&&!sincronizadoOnline){
         if(typeof log==='function')log('🔄 <b>sincronizando</b> a rodada com o anfitrião…');
@@ -1073,6 +1420,7 @@ function instalarGanchos(){
     const itemOriginal=window.useItem;
     window.__useItemOriginal=itemOriginal;
     window.useItem=function(i){
+      if(ffaAtiva)return;
       if(emPartidaOnline){
         if(!souHost&&!sincronizadoOnline){
           if(typeof log==='function')log('🔄 <b>sincronizando</b> a rodada com o anfitrião…');
@@ -1105,6 +1453,7 @@ function instalarGanchos(){
   if(typeof window.finish==='function'){
     const fimOriginal=window.finish;
     window.finish=function(){
+      if(ffaAtiva)return;
       const onlineAntes=emPartidaOnline;
       const r=fimOriginal.apply(this,arguments);
       if(onlineAntes && window.over){
@@ -1132,6 +1481,7 @@ function instalarGanchos(){
   if(typeof window.resolve==='function'){
     const resolveOriginal=window.resolve;
     window.resolve=function(){
+      if(ffaAtiva)return;
       const r=resolveOriginal.apply(this,arguments);
       if(emPartidaOnline&&souHost)setTimeout(()=>{
         if(!emPartidaOnline||!window.st)return;
@@ -1146,6 +1496,7 @@ function instalarGanchos(){
     const renderOriginal=window.renderTurn;
     window.renderTurn=function(){
       const r=renderOriginal.apply(this,arguments);
+      if(ffaAtiva)return r;
       if(emPartidaOnline){
         atualizarNomesPartida();
         if(window.turn!==meuSlot){
@@ -1226,7 +1577,7 @@ function aplicarEstadoRemoto(dados){
 }
 function atualizarIndicadorTurno(){
   let e=$$('turnoOnline');
-  if(!emPartidaOnline){ if(e) e.style.display='none'; return }
+  if(ffaAtiva||!emPartidaOnline){if(e)e.style.display='none';return}
   if(!e){
     e=document.createElement('div'); e.id='turnoOnline';
     document.body.appendChild(e);
