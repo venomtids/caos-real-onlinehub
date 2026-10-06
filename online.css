@@ -76,6 +76,9 @@
   border-radius:9px;padding:10px;font:900 11px system-ui;letter-spacing:1.6px;cursor:pointer;transition:all .15s}
 .spPronto:hover{background:rgba(61,220,151,.15)}
 .spPronto.on{background:#0e3a28;box-shadow:0 0 16px rgba(61,220,151,.5)}
+.spAbandonar{width:100%;margin-top:6px;border:1.5px solid #fe5f55;background:rgba(254,95,85,.08);
+  color:#fe7b73;border-radius:9px;padding:9px;font:900 10px system-ui;letter-spacing:1.5px;cursor:pointer}
+.spAbandonar:hover{background:rgba(254,95,85,.2)}
 .spChatTitulo{font:900 9px system-ui;letter-spacing:2.2px;color:#c44dff;margin-bottom:6px}
 .spChat{flex:1;overflow-y:auto;background:rgba(0,0,0,.35);border:1px solid #23303c;
   border-radius:9px;padding:8px;display:flex;flex-direction:column;gap:5px;min-height:120px}
@@ -179,6 +182,7 @@
   .spJog{min-height:40px;padding:7px 9px}
   .spAcao{margin-bottom:10px}
   .spPronto{min-height:48px;font-size:12px}
+  .spAbandonar{min-height:46px;font-size:11px}
   .spChat{min-height:100px;padding:9px}
   .spEmotes{gap:7px;margin:8px 0}
   .spEmotes button{min-width:40px;min-height:40px;padding:5px 8px}

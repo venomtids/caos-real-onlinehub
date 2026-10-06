@@ -17,6 +17,29 @@ let conHost=null;            // convidado -> conexao com o anfitriao
 let conexoes=new Map();      // anfitriao -> id do jogador => conexao
 let salaLocal=null;          // anfitriao -> os dados da sala
 let tentativasCod=0;
+let sequenciaJogada=0;
+const sequenciasAceitas=new Map();
+const sequenciasAplicadas=new Map();
+
+function assinaturaCarta(c){
+  return c?JSON.stringify([c.n,c.v,c.e,c.ic,c.el,c.r,c.pw&&c.pw.k,c.puz&&c.puz.k,
+    !!c.god,!!c.ordem,!!c.scar,!!c.furtivo,!!c.puzWon]):'';
+}
+function assinaturaItem(it){
+  return it?JSON.stringify([it.n,it.t,it.v,it.i,it.e]):'';
+}
+function atualizarNomesPartida(){
+  const nomes={};
+  jogadoresSala.forEach(j=>{if(j.slot)nomes[j.slot]=String(j.nome||'JOGADOR').slice(0,18)});
+  window.__onlinePlayerNames=nomes;
+  if(!window.__onlineSession)return;
+  const nome=s=>String(nomes[s]||('JOG. '+s));
+  const p1=$$('l1'),p2=$$('l2'),lbl=$$('handlbl');
+  if(p1)p1.textContent=nome(1);
+  if(p2)p2.textContent=nome(2);
+  if(lbl&&window.turn===meuSlot&&meuSlot&&/ESCOLHA UMA CARTA/.test(lbl.textContent))
+    lbl.textContent='VEZ DE '+nome(meuSlot)+' — ESCOLHA UMA CARTA';
+}
 
 const PREFIXO='caosreal2026-';
 const LETRAS='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // sem I,O,0,1
@@ -205,6 +228,12 @@ function env(tipo,dados){
   if(souHost) tratarNoHost(meuId,m);            // o anfitriao processa direto
   else if(conHost && conHost.open) conHost.send(m);
 }
+function solicitarRessincronizacao(texto){
+  if(souHost||!emPartidaOnline)return;
+  sincronizadoOnline=false;
+  sistemaChat('🔄 '+(texto||'corrigindo a sincronização da partida…'));
+  env('resync',{});
+}
 function statusRede(txt,cor){
   const e=$$('netStatus'); if(!e) return;
   e.textContent='● '+txt; e.style.color=cor||'#8fb0c4';
@@ -275,7 +304,8 @@ function ligarConexaoDoConvidado(con){
     if(j){
       paraTodos('sistema',{texto:j.nome+' saiu da sala.'});
       if(salaLocal.jogo && j.slot){
-        salaLocal.jogo=false;
+        salaLocal.jogo=false;salaLocal.avancoPendente=null;salaLocal.ultimaAvancada=0;
+        salaLocal.jogadores.forEach(x=>{x.pronto=false});
         paraTodos('abandono',{nome:j.nome});
       }
     }
@@ -309,6 +339,7 @@ function tratarNoHost(id,m){
       break;
 
     case 'pronto': {
+      if(salaLocal.jogo) return;
       j.pronto=!!m.pronto;
       if(m.heroi) j.heroi=String(m.heroi).slice(0,24);
       sincronizar();
@@ -327,9 +358,51 @@ function tratarNoHost(id,m){
       }
       break;
     }
-    case 'jogada':
+    case 'jogada': {
       if(!j.slot || !salaLocal.jogo) return;
-      paraTodos('jogada',{de:j.nome,slot:j.slot,dados:m.dados},id);
+      const d=m.dados||{}, slot=Number(j.slot), seq=Number(d.seq);
+      const ultima=sequenciasAceitas.get(id)||0;
+      const rejeitar=texto=>{
+        let snapshot=null;
+        if(id!==meuId&&typeof window.__getOnlineSnapshot==='function'){
+          try{snapshot={rodada:numeroRodada(),snapshot:window.__getOnlineSnapshot(),rng:rngState}}catch(e){}
+        }
+        paraUm(id,'erroJogo',{texto,snapshot});
+      };
+      if(!Number.isSafeInteger(seq)||seq<=ultima){rejeitar('Jogada duplicada ignorada.');return}
+      if(Number(d.turno)!==slot||Number(window.turn)!==slot){
+        rejeitar('Jogada fora de turno — aguarde a sincronização e tente novamente.');return;
+      }
+      if(window.picked&&window.picked[slot]){
+        rejeitar('Você já fez sua jogada nesta rodada.');return;
+      }
+      const aguardandoJogador2=slot===2&&window.picked&&window.picked[1]&&!window.picked[2];
+      if(window.busy&&!aguardandoJogador2){rejeitar('A rodada ainda está sendo resolvida.');return}
+      const indice=Number(d.indice);
+      if(d.acao==='carta'){
+        const carta=window.hands&&window.hands[slot]&&window.hands[slot][indice];
+        if(!Number.isInteger(indice)||!carta||d.carta!==assinaturaCarta(carta)){
+          rejeitar('Essa carta não está mais na sua mão. Aguarde a próxima sincronização.');return;
+        }
+      }else if(d.acao==='item'){
+        const item=window.inv&&window.inv[slot]&&window.inv[slot][indice];
+        if(!Number.isInteger(indice)||!item||item.used||d.item!==assinaturaItem(item)){
+          rejeitar('Esse item não está mais disponível. Aguarde a próxima sincronização.');return;
+        }
+      }else{
+        rejeitar('Ação inválida.');return;
+      }
+      sequenciasAceitas.set(id,seq);
+      paraTodos('jogada',{de:j.nome,slot,dados:d},id);
+      break;
+    }
+
+    case 'abandono':
+      if(!j.slot||!salaLocal.jogo)return;
+      salaLocal.jogo=false;salaLocal.avancoPendente=null;salaLocal.ultimaAvancada=0;
+      salaLocal.jogadores.forEach(x=>{x.pronto=false});
+      paraTodos('abandono',{nome:j.nome});
+      sincronizar();
       break;
 
     case 'proxima':
@@ -341,6 +414,15 @@ function tratarNoHost(id,m){
       if(id!==salaLocal.host || !salaLocal.jogo) return;
       paraTodos('snapshot',{dados:m.dados},id);
       break;
+
+    case 'resync': {
+      if(id===meuId||!salaLocal.jogo||typeof window.__getOnlineSnapshot!=='function')return;
+      try{
+        const snapshot={rodada:numeroRodada(),snapshot:window.__getOnlineSnapshot(),rng:rngState};
+        paraUm(id,'erroJogo',{texto:'Sincronização restaurada pelo anfitrião.',snapshot});
+      }catch(e){}
+      break;
+    }
 
     case 'estado':
       if(id!==salaLocal.host) return;          // so o anfitriao dita o estado
@@ -358,6 +440,11 @@ function tratarNoHost(id,m){
     case 'sair': {
       if(id===meuId) return;                   // o anfitriao sai por outro caminho
       const con=conexoes.get(id);
+      if(salaLocal.jogo&&j.slot){
+        salaLocal.jogo=false;salaLocal.avancoPendente=null;salaLocal.ultimaAvancada=0;
+        salaLocal.jogadores.forEach(x=>{x.pronto=false});
+        paraTodos('abandono',{nome:j.nome},id);
+      }
       conexoes.delete(id);
       salaLocal.jogadores.delete(id);
       paraTodos('sistema',{texto:j.nome+' saiu da sala.'});
@@ -375,6 +462,7 @@ function receber(m){
       jaEncerrou=false; salaAtual=m.codigo; meuId=m.id; souHost=(m.host===m.id);
       jogadoresSala=m.jogadores||[];
       meuSlot=(jogadoresSala.find(j=>j.id===meuId)||{}).slot||0;
+      atualizarNomesPartida();
       abrirSala();
       (m.chat||[]).forEach(c=>addChat(c,true));
       renderJogadores();
@@ -385,12 +473,17 @@ function receber(m){
       jogadoresSala=m.jogadores||[];
       souHost=(m.host===meuId);
       meuSlot=(jogadoresSala.find(j=>j.id===meuId)||{}).slot||0;
+      atualizarNomesPartida();
       renderJogadores();
       break;
 
     case 'chat':    addChat(m.msg); break;
     case 'sistema': sistemaChat(m.texto); break;
     case 'erro':    mostrarErro(m.msg); break;
+    case 'erroJogo':
+      sistemaChat('⚠ '+(m.texto||'Jogada recusada pelo anfitrião.'));
+      if(m.snapshot)aplicarSnapshotRemoto(m.snapshot,true);
+      break;
 
     case 'emote':
       sistemaChat(`${m.de} ${m.emote}`);
@@ -536,6 +629,8 @@ function ligarEventos(){
     naoLidas=0; atualizarBadge();
   };
   $$('spSair').onclick=()=>{
+    if((emPartidaOnline||(salaLocal&&salaLocal.jogo))&&
+       !window.confirm('A partida está em andamento. Sair encerrará a sala para todos. Quer continuar?'))return;
     if(souHost){
       conexoes.forEach(c=>{ try{ c.send({tipo:'sistema',texto:'O anfitrião encerrou a sala.'}); c.close() }catch(e){} });
       conexoes.clear(); salaLocal=null;
@@ -643,6 +738,19 @@ function renderAcao(){
   box.innerHTML='';
   if(!meuSlot){
     box.innerHTML='<div class="spAviso">👁 você está assistindo — a sala já tem 2 jogadores</div>';
+    return;
+  }
+  if(emPartidaOnline||(salaLocal&&salaLocal.jogo)){
+    const aviso=document.createElement('div');aviso.className='spAviso';
+    const atual=Number(window.turn)||1;
+    aviso.textContent='Partida em andamento · vez de '+String((window.__onlinePlayerNames||{})[atual]||('JOG. '+atual));
+    const abandonar=document.createElement('button');abandonar.className='spAbandonar';
+    abandonar.textContent='⚑ ABANDONAR PARTIDA';
+    abandonar.onclick=()=>{
+      if(window.confirm('Abandonar agora encerrará esta partida e devolverá todos ao lobby. Continuar?'))
+        env('abandono',{});
+    };
+    box.append(aviso,abandonar);
     return;
   }
   if(jogam.length<2){
@@ -842,18 +950,20 @@ function enviarSnapshotAnfitriao(){
     }catch(e){console.warn('snapshot host:',e)}
   },60);
 }
-function aplicarSnapshotRemoto(pacote){
+function aplicarSnapshotRemoto(pacote,forcar=false){
   if(!emPartidaOnline||souHost||!pacote||!pacote.snapshot)return;
   const r=Number(pacote.rodada||pacote.snapshot.st?.rd);
   if(!Number.isInteger(r)||r<1)return;
-  if(r<numeroRodada()||r===fotoAplicada)return;
-  if(r>numeroRodada()){
-    if(!fotoPendente||r>=Number(fotoPendente.rodada))fotoPendente=pacote;
-    sincronizadoOnline=false;
-    return;
+  if(!forcar){
+    if(r<numeroRodada()||r===fotoAplicada)return;
+    if(r>numeroRodada()){
+      if(!fotoPendente||r>=Number(fotoPendente.rodada))fotoPendente=pacote;
+      sincronizadoOnline=false;
+      return;
+    }
+    // Não sobrescreva uma rodada que já começou por causa de um pacote atrasado.
+    if(window.turn!==1||(window.picked&&picked[1]))return;
   }
-  // Não sobrescreva uma rodada que já começou por causa de um pacote atrasado.
-  if(window.turn!==1||(window.picked&&picked[1]))return;
   try{
     if(typeof window.__applyOnlineSnapshot!=='function'||!window.__applyOnlineSnapshot(pacote.snapshot))return;
     if(typeof pacote.rng==='number')definirEstadoRng(pacote.rng);
@@ -868,11 +978,15 @@ function aplicarSnapshotPendente(){
 }
 function limparSincronizacaoSnapshot(){
   ultimaFotoAnfitriao=0;fotoAgendada=0;fotoPendente=null;fotoAplicada=0;sincronizadoOnline=false;
+  window.__onlinePlayerNames=null;
+  sequenciaJogada=0;sequenciasAceitas.clear();sequenciasAplicadas.clear();
   document.body.classList.remove('onlineActive');
 }
 
 function iniciarPartidaOnline(semente,config){
   ultimaFotoAnfitriao=0;fotoAgendada=0;fotoPendente=null;fotoAplicada=0;
+  sequenciaJogada=0;sequenciasAceitas.clear();sequenciasAplicadas.clear();
+  atualizarNomesPartida();
   sincronizadoOnline=!!souHost;
   jaEncerrou=false; avancoSolicitado=false; avancoRecebido=null;
   if(salaLocal){salaLocal.ultimaAvancada=0;salaLocal.avancoPendente=null}
@@ -883,6 +997,7 @@ function iniciarPartidaOnline(semente,config){
   }catch(e){document.querySelectorAll('.foeSelectOverlay').forEach(x=>x.remove())}
   if(window.mode!==undefined) window.mode=2;
   emPartidaOnline=true; window.__onlineSession=true;
+  atualizarNomesPartida();
   document.body.classList.add('onlineActive');
   $$('salaPainel').classList.remove('aberto');
   sistemaChat('🎮 A partida começou!');
@@ -901,6 +1016,7 @@ function iniciarPartidaOnline(semente,config){
     }
   }catch(e){ console.error(e) }
   atualizarIndicadorTurno();
+  renderJogadores();
 }
 
 /* ---------- no online nao existe "passe o dispositivo" ----------
@@ -942,7 +1058,10 @@ function instalarGanchos(){
         if(typeof log==='function')log('⏳ <b>aguarde</b> — é a vez do seu adversário.');
         return;
       }
-      env('jogada',{dados:{acao:'carta',indice:i,turno:window.turn}});
+      if(window.busy)return; // impede toque/clique duplo de enviar a mesma carta duas vezes
+      const indice=Number(i), carta=window.hands&&window.hands[window.turn]&&window.hands[window.turn][indice];
+      if(!Number.isInteger(indice)||!carta)return;
+      env('jogada',{dados:{acao:'carta',indice,turno:window.turn,seq:++sequenciaJogada,carta:assinaturaCarta(carta)}});
       const r = await chooseOriginal.apply(this,arguments);
       setTimeout(destravarPasseDeVez,80);
       return r;
@@ -952,6 +1071,7 @@ function instalarGanchos(){
 
   if(typeof window.useItem==='function'){
     const itemOriginal=window.useItem;
+    window.__useItemOriginal=itemOriginal;
     window.useItem=function(i){
       if(emPartidaOnline){
         if(!souHost&&!sincronizadoOnline){
@@ -962,10 +1082,24 @@ function instalarGanchos(){
           if(typeof log==='function')log('⏳ <b>aguarde</b> — é a vez do seu adversário.');
           return;
         }
-        env('jogada',{dados:{acao:'item',indice:i,turno:window.turn}});
+        if(window.busy)return;
+        const indice=Number(i), item=window.inv&&window.inv[window.turn]&&window.inv[window.turn][indice];
+        if(!Number.isInteger(indice)||!item||item.used)return;
+        env('jogada',{dados:{acao:'item',indice,turno:window.turn,seq:++sequenciaJogada,item:assinaturaItem(item)}});
       }
       return itemOriginal.apply(this,arguments);
     };
+  }
+
+  if(typeof window.upd==='function'&&!window.upd.__onlineNameHook){
+    const updOriginal=window.upd;
+    const updComNomes=function(){
+      const r=updOriginal.apply(this,arguments);
+      atualizarNomesPartida();
+      return r;
+    };
+    updComNomes.__onlineNameHook=true;
+    window.upd=updComNomes;
   }
 
   if(typeof window.finish==='function'){
@@ -1013,6 +1147,7 @@ function instalarGanchos(){
     window.renderTurn=function(){
       const r=renderOriginal.apply(this,arguments);
       if(emPartidaOnline){
+        atualizarNomesPartida();
         if(window.turn!==meuSlot){
           const mao=$$('hand'),itens=$$('items'),lbl=$$('handlbl');
           if(mao){mao.innerHTML='';const espera=document.createElement('div');espera.className='spAguardando';
@@ -1038,31 +1173,40 @@ function instalarGanchos(){
 }
 
 function aplicarJogadaRemota(m){
-  if(!emPartidaOnline) return;
-  const d=m.dados||{};
+  if(!emPartidaOnline)return;
+  const d=m.dados||{},slot=Number(m.slot),seq=Number(d.seq);
+  if((slot!==1&&slot!==2)||!Number.isSafeInteger(seq)||seq<1)return;
+  if(seq<=(sequenciasAplicadas.get(slot)||0))return;
+  sequenciasAplicadas.set(slot,seq);
+  if(Number(d.turno)!==slot||Number(window.turn)!==slot){
+    solicitarRessincronizacao('A rodada saiu de sincronia; restaurando o estado do anfitrião.');
+    return;
+  }
+  const indice=Number(d.indice);
   if(d.acao==='carta'){
-    // o jogo trava com busy=true depois da carta anterior; como esta jogada
-    // vem do adversario, precisamos liberar antes de reproduzi-la aqui.
-    if(window.turn===m.slot){
-      const original = window.__chooseOriginal || window.choose;
-      if(typeof original==='function'){
-        const salvo=emPartidaOnline;
-        emPartidaOnline=false;                 // nao reenviar de volta
-        try{ window.busy=false }catch(e){}
-        try{
-          const p = original(d.indice);
-          if(p && typeof p.then==='function') p.catch(()=>{});
-        }catch(e){ console.warn('jogada remota:',e) }
-
-        emPartidaOnline=salvo;
-      }
+    const carta=window.hands&&window.hands[slot]&&window.hands[slot][indice];
+    if(!Number.isInteger(indice)||!carta||d.carta!==assinaturaCarta(carta)){
+      solicitarRessincronizacao('A mão local divergiu; restaurando as cartas da rodada.');return;
     }
-  }
-  if(d.acao==='item' && typeof useItem==='function'){
-    const salvo=emPartidaOnline; emPartidaOnline=false;
-    try{ useItem(d.indice) }catch(e){}
-    emPartidaOnline=salvo;
-  }
+    const original=window.__chooseOriginal||window.choose;
+    if(typeof original!=='function')return;
+    try{
+      window.busy=false;
+      const p=original(indice);
+      if(p&&typeof p.then==='function')p.catch(e=>console.warn('jogada remota:',e));
+    }catch(e){console.warn('jogada remota:',e);solicitarRessincronizacao('Não foi possível aplicar a carta.');return}
+  }else if(d.acao==='item'){
+    const item=window.inv&&window.inv[slot]&&window.inv[slot][indice];
+    if(!Number.isInteger(indice)||!item||item.used||d.item!==assinaturaItem(item)){
+      solicitarRessincronizacao('O inventário local divergiu; restaurando a rodada.');return;
+    }
+    const original=window.__useItemOriginal||useItem;
+    if(typeof original!=='function')return;
+    const busyAntes=window.busy;
+    try{window.busy=false;original(indice)}
+    catch(e){console.warn('item remoto:',e);solicitarRessincronizacao('Não foi possível aplicar o item.');return}
+    finally{if(!window.over)window.busy=busyAntes}
+  }else return;
   if(!souHost)sincronizadoOnline=true;
   setTimeout(destravarPasseDeVez,120);
   atualizarIndicadorTurno();
@@ -1090,8 +1234,9 @@ function atualizarIndicadorTurno(){
   e.style.display='block';
   const meuTurno=(window.turn===meuSlot);
   e.className=meuTurno?'meuTurno':'turnoDele';
-  const outro=jogadoresSala.find(j=>j.slot&&j.id!==meuId)||{};
-  e.textContent=meuTurno?'▶ SUA VEZ':'⏳ vez de '+(outro.nome||'…');
+  const slotAtual=Number(window.turn)||1;
+  const nome=(window.__onlinePlayerNames||{})[slotAtual]||('JOG. '+slotAtual);
+  e.textContent=(meuTurno?'▶ SUA VEZ · ':'⏳ VEZ DE ')+nome+' · R'+numeroRodada();
 }
 
 /* ---------------- avisa antes de fechar a aba do anfitriao ---------------- */

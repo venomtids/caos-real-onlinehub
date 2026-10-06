@@ -4592,7 +4592,12 @@ let mode=1,turn=1,rule=null,nullified=false,isBoss=false;
 let hands={1:[],2:[],3:[]},inv={1:[],2:[],3:[]},picked={1:null,2:null,3:null},buffs={1:0,2:0,3:0},flags={1:{},2:{},3:{}};
 let coopBonus=0;   // bônus de combo da dupla nesta rodada
 let busy=false,over=false,dieUsed=false,dieRolls=1;
-const name=p=>p===3?"JOG. 2":(p===1?(mode===1?"VOCÊ":(isCoop()?"JOG. 1":"JOG. 1")):(vsFoe()?foe.n:"JOG. 2"));
+const escapePlayerName=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const name=p=>{
+  const onlineName=window.__onlineSession&&window.__onlinePlayerNames&&window.__onlinePlayerNames[p];
+  if(onlineName)return escapePlayerName(onlineName);
+  return p===3?"JOG. 2":(p===1?(mode===1?"VOCÊ":(isCoop()?"JOG. 1":"JOG. 1")):(vsFoe()?foe.n:"JOG. 2"));
+};
 const teamName=()=>'A DUPLA';
 
 /* ============ FÁBRICAS ============ */
@@ -6766,7 +6771,7 @@ chooseFoe(true);
     window.__getOnlineSnapshot=function(){
       return JSON.parse(JSON.stringify({
         st,turn,hands,inv,picked,buffs,flags,rule,nullified,isBoss,chaosRound,san,corr,corrLost,
-        dieRolls,dieUsed,evtFlags,extraRules,activeMut,mutRounds,pactos,mald,maldRestam,
+        nextVisible:$('next').style.display!=='none',dieRolls,dieUsed,evtFlags,extraRules,activeMut,mutRounds,pactos,mald,maldRestam,
         kingBonus,kingRigged,orderCooldown,cronTick,aposta,trapacaAtual,acusacoes,fusaoSel,fusaoUsos,
         comediaUsos,comediaEscala,nullifyRule,heroFlags,anomaliaAtual,sanRising,survival,survKills,
         caosDespertou,semDone,lastSanTaunt,lastSanSeen,barCooldown,barWasOpen
@@ -6777,7 +6782,7 @@ chooseFoe(true);
     window.__applyOnlineSnapshot=function(s){
       try{
         if(!s||!s.st||!s.hands)return false;
-        st={...st,...s.st};turn=1;mode=2;
+        st={...st,...s.st};turn=(Number(s.turn)===2?2:1);mode=2;
         hands=s.hands;inv=s.inv||{1:[],2:[],3:[]};picked=s.picked||{1:null,2:null,3:null};
         buffs=s.buffs||{1:0,2:0,3:0};flags=s.flags||{1:{},2:{},3:{}};
         const hydrateRule=r=>r?(RULES.find(x=>x.n===r.n)||r):null;
@@ -6807,7 +6812,8 @@ chooseFoe(true);
         sanRising=!!s.sanRising;survival=false;survKills=Number(s.survKills)||0;
         caosDespertou=!!s.caosDespertou;semDone=!!s.semDone;
         lastSanTaunt=Number(s.lastSanTaunt)||0;lastSanSeen=Number(s.lastSanSeen)||0;
-        barCooldown=Number(s.barCooldown)||0;barWasOpen=!!s.barWasOpen;busy=false;over=false;
+        barCooldown=Number(s.barCooldown)||0;barWasOpen=!!s.barWasOpen;
+        busy=!!(picked[1]&&picked[2]&&!s.nextVisible);over=false;
         const c=$('chaos');c.className='chaos'+(isBoss?' bossR':'');
         const n=c.querySelector('.n'),d=c.querySelector('.d');
         if(n)n.textContent=rule?'⚡ '+rule.n:'—';
@@ -6818,9 +6824,15 @@ chooseFoe(true);
           ex.style.cssText='margin-top:3px;opacity:.9';
           ex.textContent='+ '+extraRules.map(r=>'⚡ '+r.n).join(' + ');c.appendChild(ex);
         }
-        $('next').style.display='none';$('s1').innerHTML='';$('s2').innerHTML='';
+        $('next').style.display=s.nextVisible?'inline-block':'none';
+        $('s1').className='slot';$('s2').className='slot';$('s1').innerHTML='';$('s2').innerHTML='';
+        if(picked[1])$('s1').appendChild(cardEl(picked[1],'p1 flip'));
+        if(picked[2])$('s2').appendChild(cardEl(picked[2],'p2 flip'));
         try{applyChaosSkin(chaosLevel())}catch(e){}
         upd();renderMald();renderPactos();renderTurn();
+        if(picked[1]&&picked[2]&&!s.nextVisible){
+          $('hand').innerHTML='';$('items').innerHTML='';$('handlbl').textContent='⏳ SINCRONIZANDO A RODADA…';
+        }
         return true;
       }catch(e){console.warn('snapshot online:',e);return false}
     };
@@ -6831,6 +6843,7 @@ chooseFoe(true);
     st:{get:()=>st},
     hero:{get:()=>hero},
     hands:{get:()=>hands},
+    inv:{get:()=>inv},
     picked:{get:()=>picked},
     foe:{get:()=>foe},
     over:{get:()=>over},

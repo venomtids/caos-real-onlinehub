@@ -45,7 +45,7 @@ Pronto. Esse é o link. Mande pros amigos.
 4. Os dois clicam em **ESTOU PRONTO** e a partida começa sozinha.
 5. O botão **💬** abre o chat. Dá pra mandar emotes também.
 
-Quem entra depois dos dois primeiros vira **espectador** — assiste e usa o chat.
+Quem entra depois dos dois primeiros vira **espectador** — assiste e usa o chat. Durante a partida, os nomes aparecem no HUD e no indicador de turno. Pelo painel da sala, um jogador pode **abandonar a partida** e devolver todos ao lobby sem fechar a sala; jogadas repetidas ou fora de turno são bloqueadas e a tela pode ser ressincronizada pelo anfitrião.
 
 ---
 
