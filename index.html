@@ -47,6 +47,32 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
   letter-spacing:1px;cursor:pointer;box-shadow:0 3px 0 #0e161d;width:100%}
 .hudbtn:active{transform:translateY(3px);box-shadow:none}
 .elkey{font-size:10px;color:#9fc0d4;text-align:center;line-height:1.5}
+/* HUD individual de cada combatente: identidade, vida e habilidade própria. */
+.fighterHud{--fighter-accent:#009dff;position:relative;overflow:hidden;
+  border:1px solid var(--fighter-accent);box-shadow:inset 4px 0 var(--fighter-accent),0 5px 15px #0005;
+  background:linear-gradient(145deg,#263847,#17232e)}
+.fighterHead{display:flex;align-items:center;gap:9px;min-width:0}
+.fighterPortrait{flex:none;width:42px;height:42px;display:grid;place-items:center;border-radius:11px;
+  border:1px solid var(--fighter-accent);background:#0e161d;font-size:25px;
+  box-shadow:0 0 14px #0008,inset 0 0 12px #ffffff0c}
+.fighterIdentity{flex:1;min-width:0;text-align:left;line-height:1.2}
+.fighterRole{font-size:8px;font-weight:900;letter-spacing:1.5px;color:var(--fighter-accent);margin-bottom:3px}
+.fighterMain{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:12px;font-weight:900;color:#fff;letter-spacing:.35px}
+.fighterName{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  margin-top:2px;font-size:8.5px;line-height:1.3;color:#b9cad8}
+.fighterBank{flex:none;align-self:flex-start;padding:3px 5px;border-radius:6px;background:#0e161d;
+  color:#f9c74f;font-size:8px;font-weight:900}
+.fighterHpRow{margin:8px 0 5px;gap:6px}
+.fighterHpLabel{width:34px!important;font-size:8px!important;letter-spacing:1px;color:var(--fighter-accent)}
+.fighterBar{height:13px}
+.fighterBar i{background:linear-gradient(90deg,#0e161d,var(--fighter-accent))!important}
+.fighterHpRow .hpn{font-size:14px}
+.fighterAbility{min-height:25px;padding-top:5px;border-top:1px solid #ffffff15;
+  color:#c5d4df;font-size:8.5px;line-height:1.3;text-align:left}
+.playerFighter{cursor:pointer}
+.playerFighter:hover{filter:brightness(1.08)}
+.enemyFighter{--fighter-accent:#fe5f55}
 
 /* ---------- BOARD ---------- */
 .board{display:flex;flex-direction:column;gap:11px}
@@ -940,6 +966,10 @@ body.godmode .logo{background:linear-gradient(180deg,#fff,#ff2e88);-webkit-backg
   .hud .logo small{font-size:8px;letter-spacing:1px}
   .hud .round{flex-basis:104px;min-width:104px;align-self:center;padding:10px 5px;font-size:12px}
   .hud .box{padding:7px 8px;min-height:62px;border-radius:9px}
+  .hud .fighterHud{flex:0 0 190px;min-width:190px;padding:8px}
+  .hud .fighterPortrait{width:36px;height:36px;font-size:22px}
+  .hud .fighterMain{font-size:11px}.hud .fighterName{font-size:8px}
+  .hud .fighterAbility{font-size:8px;min-height:22px}
   .hud .faceBox{flex-basis:112px;min-width:112px}
   .hud .faceFrame{width:58px;height:58px}
   .hud #doomFace{width:56px;height:56px}
@@ -1005,6 +1035,184 @@ body.godmode .logo{background:linear-gradient(180deg,#fff,#ff2e88);-webkit-backg
 @media(prefers-reduced-motion:reduce){
   .hud{scroll-behavior:auto;scroll-snap-type:none}
   .card,.big,.actBtn,.hudbtn{scroll-behavior:auto}
+}
+
+/* ---------- MODO DO DIABO: mesa de truco + HUD mínimo ---------- */
+ .devilTableTitle{display:none;}
+.foe.foeDevil{border-color:#ef3d35;box-shadow:0 0 18px #ef3d3555,0 5px 0 #1c100d;}
+.foe.foeDevil .fmaxDevil{color:#ff9385;}
+body.devilmode{background:radial-gradient(ellipse at 50% 5%,#3d2a1c,#100c09 62%,#070605);}
+body.devilmode #shakeWrap{padding:7px;}
+body.devilmode .game{display:flex;flex-direction:column;gap:8px;max-width:1440px;}
+body.devilmode .hud{position:relative;top:auto;z-index:2;display:flex;flex-direction:row;align-items:center;
+  justify-content:center;min-height:48px;padding:3px;background:transparent;box-shadow:none;overflow:visible;}
+body.devilmode .hud>*:not(#devilHud){display:none!important;}
+.devilHud{display:none;align-items:center;justify-content:space-between;gap:12px;width:min(100%,760px);min-width:0;
+  padding:5px 11px;border:1px solid #a9834d;border-radius:12px;color:#f4e6c9;
+  background:linear-gradient(180deg,#22170fef,#0e0b08ed);box-shadow:0 3px 0 #0008,inset 0 0 0 1px #e5c48124;
+  font-family:Georgia,'Times New Roman',serif;}
+body.devilmode .devilHud{display:flex;}
+.devilHpLine{display:flex;align-items:center;gap:9px;white-space:nowrap;font-size:10px;letter-spacing:.7px;font-weight:bold;}
+.devilHpLine strong{color:#fff;font-size:15px;margin-left:3px;}
+.devilRound{padding:4px 7px;border-radius:6px;background:#49331d;color:#f0c982;font-size:8px;letter-spacing:1px;}
+.devilGunLine{display:flex;align-items:center;gap:9px;min-width:0;}
+.devilGunIcon{font-size:23px;line-height:1;filter:drop-shadow(0 0 8px #ef3d35aa);}
+.devilCylinder{--devil-angle:720deg;position:relative;flex:none;width:38px;height:38px;border-radius:50%;
+  border:3px solid #bf9657;background:radial-gradient(circle,#b59a70 0 12%,#211a13 14% 100%);
+  box-shadow:0 0 0 2px #17100b,0 2px 6px #0009;}
+.devilChamber{position:absolute;width:8px;height:8px;border-radius:50%;background:#090807;
+  border:1px solid #c5a268;box-shadow:inset 0 1px 2px #000;}
+.devilChamber:nth-child(1){left:12px;top:2px}.devilChamber:nth-child(2){right:3px;top:7px}
+.devilChamber:nth-child(3){right:3px;bottom:7px}.devilChamber:nth-child(4){left:12px;bottom:2px}
+.devilChamber:nth-child(5){left:3px;bottom:7px}.devilChamber:nth-child(6){left:3px;top:7px}
+.devilChamber.aimed{background:#f0cf8c;box-shadow:0 0 9px #ffc85c,inset 0 0 3px #fff;}
+.devilCylinder.spinning{animation:devilCylinderSpin .85s cubic-bezier(.12,.75,.12,1) both;}
+@keyframes devilCylinderSpin{0%{transform:rotate(0)}76%{transform:rotate(calc(var(--devil-angle) + 27deg))}
+  100%{transform:rotate(var(--devil-angle))}}
+.devilTrigger{position:relative;margin-left:-12px;margin-top:28px;color:#e9bb6b;font-size:16px;transform:rotate(35deg);}
+.devilGunText{display:flex;flex-direction:column;gap:2px;min-width:112px;}
+.devilGunText strong{font-size:8px;letter-spacing:1px;color:#ffb379;}
+.devilGunText small{font-size:8px;color:#b7a080;white-space:nowrap;}
+body.devilmode .board{position:relative;isolation:isolate;gap:8px;padding:clamp(10px,2vw,22px);
+  border:12px solid #57351e;border-radius:34px;
+  background:radial-gradient(ellipse at 50% 40%,#17613f 0%,#10452f 62%,#0a3325 100%);
+  box-shadow:inset 0 0 0 4px #bc8b4b,inset 0 0 55px #03150eaa,0 9px 0 #24150d,0 16px 32px #000b;
+  animation:devilTableIn .7s cubic-bezier(.2,1.3,.35,1);}
+body.devilmode .board::before{content:'';position:absolute;inset:12px;border:1px solid #d8b36e44;border-radius:22px;
+  pointer-events:none;z-index:-1;background:repeating-linear-gradient(135deg,#fff0 0 31px,#ffffff05 32px,#fff0 34px);}
+@keyframes devilTableIn{0%{transform:scale(.9) rotate(-1deg);filter:brightness(2)}100%{transform:none;filter:none}}
+body.devilmode #chaos{padding:5px 10px;border:1px solid #d0ae7355;border-radius:9px;
+  background:linear-gradient(90deg,#1c130dcc,#100d0acc);box-shadow:none;color:#f3dfbd;}
+body.devilmode #chaos .t{display:none;}
+body.devilmode #chaos .n{font:900 13px Georgia,'Times New Roman',serif;letter-spacing:1px;}
+body.devilmode #chaos .d{display:none;}
+body.devilmode .evt{border:1px solid #d6ad6966;box-shadow:none;}
+body.devilmode .arena{min-height:230px;background:#06241855;border:1px solid #d6c19728;
+  border-radius:16px;box-shadow:inset 0 0 30px #00180e66;}
+body.devilmode .slot{min-height:210px;}
+body.devilmode .vs{color:#ead9b7;text-shadow:0 2px 5px #000;}
+body.devilmode .handzone{background:#06261955;border:1px solid #c9ac7630;box-shadow:inset 0 0 24px #00170e66;}
+body.devilmode .handlbl{color:#e9d8b8;}
+body.devilmode .log{height:48px;min-height:36px;padding:5px 8px;border:1px solid #c9ac7630;
+  background:#0a2118bf;color:#e5d8bd;font:10px Georgia,'Times New Roman',serif;}
+body.devilmode .log div{padding:1px 0;}
+body.devilmode .actBar{gap:5px;}
+body.devilmode .actBtn{background:linear-gradient(180deg,#59402a,#302015);color:#f2dfbf;border:1px solid #a77b46;
+  box-shadow:0 2px 0 #160f0a;font-size:9px;}
+body.devilmode .big{background:linear-gradient(180deg,#d4b77c,#9b6f35);color:#27180b;box-shadow:0 4px 0 #53351a;}
+body.devilmode .card:not(.item){--truco-ink:#27352c;position:relative;isolation:isolate;
+  overflow:hidden;border:2px solid #56391f;border-radius:8px;color:#241b12;
+  background:linear-gradient(145deg,#fff8e5,#e6d3a9 72%,#d2bb8a);
+  box-shadow:0 5px 0 #3a2817,0 10px 16px #0008,inset 0 0 0 2px #f7ebcc;}
+body.devilmode .card:not(.item)::before{content:'';position:absolute;inset:5px;border:1px solid #8e6a3a88;border-radius:4px;
+  pointer-events:none;z-index:2;}
+body.devilmode .card:not(.item)::after{display:none!important;}
+body.devilmode .card:not(.item) .hdr{padding:5px 8px;background:#3d2c1a0c;border-bottom:1px solid #80623a77;color:var(--truco-ink);}
+body.devilmode .trucoRank{display:flex;align-items:center;gap:3px;color:var(--truco-ink);font:bold 15px Georgia,serif;line-height:1;}
+body.devilmode .trucoRank i{font-style:normal;font-size:13px;}
+body.devilmode .trucoSuit{font:900 7px Georgia,serif;letter-spacing:1.2px;color:var(--truco-ink);}
+body.devilmode .card:not(.item) .body{position:relative;gap:4px;padding:5px 9px 10px;}
+body.devilmode .trucoWatermark{position:absolute;inset:20px 0 auto;text-align:center;color:var(--truco-ink);
+  opacity:.075;font:120px/1 Georgia,serif;pointer-events:none;}
+body.devilmode .card:not(.item) .n{position:relative;z-index:1;font:bold 11px/1.15 Georgia,'Times New Roman',serif;
+  text-transform:uppercase;letter-spacing:.4px;color:#26180e;}
+body.devilmode .card:not(.item) .v{position:relative;z-index:1;font:900 43px/1 Georgia,'Times New Roman',serif;
+  color:var(--truco-ink);text-shadow:1px 2px 0 #fff7;}
+body.devilmode .card:not(.item) .e{position:relative;z-index:1;color:#5d4428;font:italic 9px/1.25 Georgia,'Times New Roman',serif;opacity:1;}
+body.devilmode .card:not(.item) .pw{position:relative;z-index:1;margin-top:auto;border-radius:3px;
+  background:#432b19;color:#f5e4c0;font:900 8px/1.2 Georgia,serif;}
+body.devilmode .card:not(.item) .pw span{font-size:7.5px;color:#ead4ae;}
+body.devilmode .trucoFoot{position:relative;z-index:3;flex:none;padding:3px 7px 5px;border-top:1px solid #80623a55;
+  color:#715331;font:900 6px Georgia,serif;letter-spacing:2px;text-align:center;}
+body.devilmode .card.back{background:repeating-linear-gradient(45deg,#551d20 0 7px,#e4c796 7px 9px,#301517 9px 16px);
+  color:#f4e3c2;border-color:#a77b46;}
+body.devilmode .card.item{border-color:#c29353;background:linear-gradient(160deg,#3b2a1d,#20150f);color:#f1dfbf;}
+body.devilmode .card.item .pw{background:#785431;color:#fff0d0;}
+body.devilmode .card:not(.item) .amb,body.devilmode .card:not(.item) .aura{display:none!important;}
+body.devilmode .card:not(.item).rara,body.devilmode .card:not(.item).lendaria,
+body.devilmode .card:not(.item).boss,body.devilmode .card:not(.item).puzzle,
+body.devilmode .card:not(.item).godcard,body.devilmode .card:not(.item).ordem{
+  border-color:#56391f;background:linear-gradient(145deg,#fff8e5,#e6d3a9 72%,#d2bb8a);color:#241b12;}
+body.devilmode .card.win{box-shadow:0 0 0 3px #d9bd7d,0 0 26px #f6d575;}
+body.devilmode .card.lose{filter:sepia(.5) brightness(.8);}
+body.devilmode .foe.foeDevil{border-color:#ef3d35;box-shadow:0 0 28px #ef3d3588,0 7px 0 #210d0a;}
+body.devilmode #barSign,body.devilmode #sanBox,body.devilmode #smileWrap{display:none!important;}
+@media(max-width:860px){
+  body.devilmode .hud{position:relative;top:auto;overflow:visible;scroll-snap-type:none;padding:2px;}
+  body.devilmode .devilHud{width:min(100%,680px);}
+}
+@media(max-width:640px){
+  body.devilmode #shakeWrap{padding:4px;}
+  body.devilmode .game{gap:5px;}
+  body.devilmode .board{padding:8px;border-width:7px;border-radius:22px;gap:6px;}
+  body.devilmode .board::before{inset:7px;border-radius:14px;}
+  body.devilmode .devilHud{gap:6px;padding:4px 7px;border-radius:9px;}
+  body.devilmode .devilHpLine{gap:5px;font-size:8px;}
+  body.devilmode .devilHpLine strong{font-size:12px;}
+  body.devilmode .devilRound{font-size:7px;padding:3px 4px;}
+  body.devilmode .devilGunLine{gap:5px;}
+  body.devilmode .devilGunIcon{font-size:18px;}
+  body.devilmode .devilCylinder{width:32px;height:32px;}
+  body.devilmode .devilChamber{width:7px;height:7px;}
+  body.devilmode .devilChamber:nth-child(1){left:10px;top:1px}
+  body.devilmode .devilChamber:nth-child(2){right:2px;top:6px}
+  body.devilmode .devilChamber:nth-child(3){right:2px;bottom:6px}
+  body.devilmode .devilChamber:nth-child(4){left:10px;bottom:1px}
+  body.devilmode .devilChamber:nth-child(5){left:2px;bottom:6px}
+  body.devilmode .devilChamber:nth-child(6){left:2px;top:6px}
+  body.devilmode .devilGunText{min-width:88px;}
+  body.devilmode .devilGunText strong,body.devilmode .devilGunText small{font-size:7px;}
+  body.devilmode .arena{grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr);gap:3px;min-height:0;padding:5px;}
+  body.devilmode .slot{min-height:clamp(150px,44vw,190px);}
+  body.devilmode .slot .card{width:clamp(92px,28vw,116px);height:clamp(154px,47vw,186px);}
+  body.devilmode .slot .card .v{font-size:clamp(30px,9vw,39px);}
+  body.devilmode .hand>.card{width:clamp(106px,30vw,122px);height:clamp(166px,50vw,196px);}
+  body.devilmode .hand{min-height:178px;}
+  body.devilmode .log{height:38px;min-height:32px;font-size:9px;}
+  body.devilmode .actBtn{font-size:8px;padding:6px 4px;}
+}
+body.devilmode .hud{transform:none!important;filter:none!important;zoom:1!important;opacity:1!important;
+  animation:none!important;}
+body.devilmode .board{order:0!important;transform:none!important;filter:none!important;opacity:1!important;}
+body.devilmode #shakeWrap:not(.shake){transform:none!important;filter:none!important;animation:none!important;}
+body.devilmode.lvl4 #shakeWrap,body.devilmode.lvl5 #shakeWrap,
+body.devilmode.lvlDeep .hud,body.devilmode.lvlVoid .board,body.devilmode.lvlEnd #shakeWrap,
+body.devilmode.lvlEnd .logo{animation:none!important;}
+body.devilmode.chaosfight::before{display:none!important;}
+body.devilmode #chaosTint{opacity:0!important;mix-blend-mode:normal!important;}
+body.devilmode .devilActions{display:flex;align-items:center;gap:5px;flex:none;}
+body.devilmode .devilMiniBtn{padding:5px 7px;border:1px solid #a9834d;border-radius:6px;
+  background:linear-gradient(180deg,#49331f,#24170f);color:#ead4ae;font:900 7px Georgia,serif;
+  letter-spacing:.8px;cursor:pointer;white-space:nowrap;}
+body.devilmode .devilMiniBtn:hover{background:#77502a;color:#fff2d6;}
+body.devilmode .devilTableTitle{display:block;padding:2px 4px;text-align:center;color:#e0bf82;
+  font:900 10px Georgia,'Times New Roman',serif;letter-spacing:2px;text-shadow:0 2px 3px #00180d;}
+body.devilmode .devilChamber.loaded{background:radial-gradient(circle,#ffe074 0 30%,#b83325 38% 72%,#21120d 76%);
+  box-shadow:0 0 7px #ff6049,inset 0 1px 2px #fff8;}
+body.devilmode .devilChamber.aimed{outline:2px solid #fff0b5;outline-offset:2px;}
+body.devilmode .devilChamber.loaded.aimed{box-shadow:0 0 13px #ffef9b,0 0 6px #f44;}
+body.devilmode .devilTaunt{left:50%!important;top:16vh!important;width:min(440px,calc(100vw - 24px));
+  max-width:none;text-align:center;transform:translateX(-50%);border-color:#e3b46d!important;
+  border-radius:5px;background:#1c130ff5;color:#f2deb7!important;font:italic 15px/1.35 Georgia,'Times New Roman',serif;
+  letter-spacing:.2px;box-shadow:0 6px 25px #000b,0 0 18px #d42d2477;}
+body.devilmode .devilTaunt::before{content:'O DIABO DIZ';display:block;margin-bottom:3px;color:#e65348;
+  font:900 8px Georgia,serif;letter-spacing:2px;}
+body.devilmode .devilShot{position:fixed;inset:0;z-index:76;display:grid;place-items:center;
+  padding:20px;pointer-events:none;color:#fff2e3;text-align:center;font:1000 clamp(28px,9vw,76px)/.95 Georgia,serif;
+  letter-spacing:3px;text-shadow:0 0 10px #f30,0 0 35px #f20,0 7px 0 #190706;
+  animation:devilShot .95s cubic-bezier(.15,.8,.25,1) forwards;}
+@keyframes devilShot{0%{opacity:0;transform:scale(2.2) rotate(-4deg);filter:brightness(2)}12%{opacity:1}
+  35%{transform:scale(.9) rotate(1deg)}72%{opacity:1}100%{opacity:0;transform:scale(1.08)}}
+body.devilmode .card:not(.item) .devilPassive{border:1px solid #a83c2c;background:#54251d;color:#ffe5bd;}
+body.devilmode .card:not(.item) .devilPassive span{color:#ffd3ad;}
+@media(max-width:640px){
+  body.devilmode .devilHud{flex-wrap:wrap;justify-content:center;}
+  body.devilmode .devilHpLine{flex:1 0 100%;justify-content:center;}
+  body.devilmode .devilGunLine{justify-content:center;}
+  body.devilmode .devilActions{gap:4px;}
+  body.devilmode .devilMiniBtn{font-size:7px;padding:5px;}
+  body.devilmode .devilTableTitle{font-size:8px;letter-spacing:1px;}
+  body.devilmode .devilTaunt{top:12vh!important;font-size:12px;}
 }
 </style>
 <link rel="stylesheet" href="online.css">
@@ -1148,16 +1356,38 @@ body.godmode .logo{background:linear-gradient(180deg,#fff,#ff2e88);-webkit-backg
 
   <div class="hud">
     <div class="logo">CAOS<br>REAL<small>chaos card game</small></div>
+    <div class="devilHud" id="devilHud" aria-live="polite" aria-label="Mesa do Diabo e roleta do tambor">
+      <div class="devilHpLine"><span>VOCÊ <strong id="devilHp1">20</strong></span>
+        <span class="devilRound" id="devilRound">MÃO 1</span><span>DIABO <strong id="devilHp2">96</strong></span></div>
+      <div class="devilGunLine"><span class="devilGunIcon" aria-hidden="true">🔫</span>
+        <div class="devilCylinder" id="devilCylinder" aria-label="Tambor com seis câmaras">
+          <i class="devilChamber"></i><i class="devilChamber"></i><i class="devilChamber"></i>
+          <i class="devilChamber"></i><i class="devilChamber"></i><i class="devilChamber"></i>
+        </div><span class="devilTrigger" aria-hidden="true">⌁</span>
+        <div class="devilGunText"><strong id="devilGunState">INSTABILIDADE · TAMBOR CARREGADO</strong>
+          <small id="devilGunCount">1 de 6 câmaras · gire e veja</small></div>
+      </div>
+      <div class="devilActions"><button class="devilMiniBtn" id="devilModeBtn" type="button" title="Alternar modo de jogo">MODO</button>
+        <button class="devilMiniBtn" id="devilFoeBtn" type="button" title="Trocar de oponente">TROCAR</button></div>
+    </div>
     <div class="round" id="roundBox">RODADA 1</div>
     <div class="box faceBox">
       <div class="mini">ESTADO DE ESPÍRITO</div>
       <div class="faceFrame"><canvas id="doomFace" width="96" height="96"></canvas></div>
       <div class="faceLbl" id="faceLbl">TRANQUILO</div>
     </div>
-    <div class="box">
-      <div class="mini">COMBATENTES</div>
-      <div class="hpline"><span class="lbl" id="l1">VOCÊ</span><span class="bar blue"><i id="b1" style="width:100%"></i></span><span class="hpn" id="h1">20</span></div>
-      <div class="hpline"><span class="lbl" id="l2">GREMLIN</span><span class="bar red"><i id="b2" style="width:100%"></i></span><span class="hpn" id="h2">20</span></div>
+    <div class="box fighterHud playerFighter" id="heroBox" title="Clique para trocar de personagem" role="button" tabindex="0"></div>
+    <div class="box fighterHud enemyFighter" id="foeHud">
+      <div class="fighterHead">
+        <span class="fighterPortrait" id="foeHudIcon">👺</span>
+        <div class="fighterIdentity">
+          <div class="fighterRole" id="foeHudRole">OPONENTE · IA</div>
+          <strong class="fighterMain" id="l2">GREMLIN</strong>
+          <small class="fighterName" id="foeInfo">IA TÁTICA</small>
+        </div>
+      </div>
+      <div class="hpline fighterHpRow"><span class="lbl fighterHpLabel">VIDA</span><span class="bar red fighterBar"><i id="b2" style="width:100%"></i></span><span class="hpn" id="h2">20</span></div>
+      <div class="fighterAbility" id="foePass">sem passiva — o clássico</div>
     </div>
     <div class="box">
       <div class="mini">PONTOS × SEQUÊNCIA</div>
@@ -1166,7 +1396,6 @@ body.godmode .logo{background:linear-gradient(180deg,#fff,#ff2e88);-webkit-backg
     <div class="box"><div class="mini">NÍVEL DE CAOS</div>
       <div class="chaosbar"><i id="chaosFill"></i><b id="chaosTxt">1 · MORNO</b></div>
       <div class="elkey" id="chaosDesc" style="margin-top:4px">o caos ainda está se aquecendo…</div></div>
-    <div class="box" id="heroBox" style="cursor:pointer"></div>
     <div class="box" id="corrBox"><div class="mini">⚔ CORRUPÇÃO DA ORDEM</div>
       <div class="corrbar"><i id="corrFill"></i><b id="corrTxt">100 / 100</b></div>
       <div class="elkey" id="corrDesc" style="margin-top:4px">a Ordem resiste, intacta.</div></div>
@@ -1174,9 +1403,6 @@ body.godmode .logo{background:linear-gradient(180deg,#fff,#ff2e88);-webkit-backg
       <div class="sanFace" id="sanFace">🙂</div>
       <div class="sanbar"><i id="sanFill"></i><b id="sanTxt">0 / 100</b></div>
       <div class="elkey" id="sanDesc" style="margin-top:4px">a mente ainda resiste…</div></div>
-    <div class="box"><div class="mini">OPONENTE</div>
-      <div id="foeInfo" style="font-size:12px;font-weight:900">👺 GREMLIN</div>
-      <div class="elkey" id="foePass" style="text-align:left;margin-top:3px">sem passiva — o clássico</div></div>
     <div class="box"><div class="mini">REGRA ATUAL</div><div id="hudRule" style="font-size:12.5px;font-weight:900">—</div></div>
     <div class="box"><div class="mini">ELEMENTOS (+3 vantagem)</div><div class="elkey">🔥 Fogo → 🌪 Ar → 🪨 Terra → 💧 Água → 🔥<br><span style="opacity:.7">🌑 Vazio: imune a elementos</span></div></div>
     <div class="box"><div class="mini">PLACAR</div><div id="score"></div></div>
@@ -1190,6 +1416,7 @@ body.godmode .logo{background:linear-gradient(180deg,#fff,#ff2e88);-webkit-backg
   </div>
 
   <div class="board">
+    <div class="devilTableTitle" id="devilTableTitle">♣ &nbsp; MESA DO DIABO · TRUCO DE ALMAS &nbsp; ♦</div>
     <div class="chaos" id="chaos"><div class="t">REGRA DO CAOS</div><div class="n">—</div><div class="d">carregando o caos…</div></div>
     <div class="evt" id="evt" style="display:none"><div class="t">EVENTO DO CAOS</div><div class="n">—</div><div class="d">—</div></div>
     <div class="arena">
@@ -1930,6 +2157,39 @@ const FOES=[
     'eu não odeio o caos. eu o organizo.','o fim também tem um formulário.',
     'silêncio. estou calculando o seu.'],
   pass:{k:'order', t:'ORDEM: joga CARTAS DA ORDEM, ANULA poderes e ESTABILIZA a realidade'}},
+ {id:'agiota', n:'AGIOTA DO ABISMO', ic:'💸', hp:34, ai:'low', col:'#62c8a4',
+  taunt:['a taxa de derrota venceu ontem.','não aceito lágrimas como pagamento.','você pediu uma chance; cobrei duas.',
+    'seu saldo de bom senso está negativo.','parcelamos sua dignidade em doze vezes.'],
+  pass:{k:'tax', t:'JUROS: confisca 15% dos seus pontos a cada rodada'}},
+ {id:'cartomante', n:'CARTOMANTE SEM ALMA', ic:'🃏', hp:31, ai:'elem', col:'#be7cff',
+  taunt:['eu li seu futuro. ele pediu sigilo.','a carta não mente; você é que interpreta mal.',
+    'vejo uma derrota no seu caminho. espere: já chegou.','seu destino tem péssima caligrafia.',
+    'consultei as cartas. elas pediram outro cliente.'],
+  pass:{k:'void', t:'VÉU: seus poderes falham 35% das vezes'}},
+ {id:'diabo', n:'O DIABO', ic:'👹', hp:96, ai:'devil', col:'#ef3d35',
+  taunt:[
+    'Seu plano tinha uma etapa: falhar.',
+    'Você chama isso de blefe; o baralho chama de pedido de socorro.',
+    'A confiança é admirável. A leitura, nem tanto.',
+    'Essa carta veio com manual? Você claramente não abriu.',
+    'O truco foi alto; o argumento, baixo.',
+    'Até meu contador de almas pediu reembolso.',
+    'Você tem estratégia ou só esperança parcelada?',
+    'A mesa viu. Eu vi. Sua mão esquerda talvez também.',
+    'Se insistir em chamar isso de plano, vou cobrar direitos autorais.',
+    'Sorte é o nome que você dá ao que não calculou.',
+    'Seu melhor movimento ainda está no menu.',
+    'Você está jogando contra mim e contra o bom senso.',
+    'Não é azar; é consistência.',
+    'A carta é boa. A decisão é que veio errada.',
+    'O baralho embaralhou; seu raciocínio não.',
+    'Mais um blefe. Quero ver se convence alguém além de você.',
+    'Seu escudo é de papel. Ao menos combina com as cartas.',
+    'Você pediu uma chance; eu dei seis câmaras. Que generoso.',
+    'O silêncio depois da sua jogada foi o aplauso que ela mereceu.',
+    'Fim da mão. Seu argumento já tinha desistido antes.'
+  ],
+  pass:{k:'devil', t:'MODO MESA: quebra as regras, carrega o tambor e pune cada derrota'}} ,
  {id:'ocaos',  n:'O CAOS',         ic:'🌀', hp:70, ai:'chaos', col:'#c44dff',
   taunt:['eu não sou um oponente. eu sou o lugar onde você joga.',
     'você chegou ao nível 55. eu vim ver quem foi.',
@@ -2683,6 +2943,7 @@ const HUDMUTS=[
 ];
 let activeMut=null,mutRounds=0;
 function mutateHUD(force){
+  if(isDevilMode())return;
   const m=force||pick(HUDMUTS.filter(x=>x.c!==activeMut?.c));
   clearMut();
   activeMut=m;mutRounds=2+Math.floor(Math.random()*2);
@@ -2700,6 +2961,7 @@ function clearMut(){
   activeMut=null;mutRounds=0;
 }
 function tickMut(){
+  if(isDevilMode()){if(activeMut)clearMut();return}
   if(!activeMut)return;
   mutRounds--;
   if(mutRounds<=0){
@@ -3012,6 +3274,7 @@ const EVENTS=[
 let evtFlags={};
 function runEvent(){
   evtFlags={};
+  if(isDevilMode()){$('evt').style.display='none';return}
   const box=$('evt');
   if(Math.random()>=CL().evt){box.style.display='none';return}
   runEventOne(pick(EVENTS));
@@ -3034,6 +3297,7 @@ function runEvent(){
   }
 }
 function runEventOne(ev,ordem){
+  if(isDevilMode()){$('evt').style.display='none';return}
   const box=$('evt');
   box.style.display='';box.className='evt '+ev.ty;
   box.innerHTML=`<div class="t">EVENTO DO CAOS</div><div class="n">${ev.ic} ${ev.n}</div><div class="d">${ev.d}</div>`;
@@ -3327,6 +3591,7 @@ const HAZARDS=[
     hands[p]=hands[p].map(()=>mkCard())})}}
 ];
 function runHazard(){
+  if(isDevilMode())return;
   const lv=chaosLevel();
   const disp=HAZARDS.filter(h=>lv>=h.lv);
   if(!disp.length)return;
@@ -3384,7 +3649,7 @@ function advanceChaos(){
 /* ---- NÍVEL 55: O CAOS EM PESSOA ---- */
 let caosDespertou=false,semDone=false;
 function triggerCaos(){
-  if(caosDespertou||!vsFoe()||foe.id==='ocaos')return;
+  if(isDevilMode()||caosDespertou||!vsFoe()||foe.id==='ocaos')return;
   caosDespertou=true;
   const c=FOES.find(f=>f.id==='ocaos');if(!c)return;
   foe={...c};st.hp2=foeMaxHp();
@@ -3430,6 +3695,13 @@ function tickChaos(){
     lastTxt=txt;$('chaosTxt').textContent=txt;
     $('chaosDesc').textContent=lv>=CHAOS_MAX?C.d
       :C.d+` · ${falta} jogada${falta>1?'s':''} até o FIM`;
+  }
+  if(isDevilMode()){
+    if(lv>lastLv){
+      const jumped=lv-lastLv;lastLv=lv;applyChaosSkin(lv);
+      addSan(1.2+Math.floor(lv/10)*jumped);
+    }
+    return;
   }
   if(lv>lastLv){
     const jumped=lv-lastLv;lastLv=lv;applyChaosSkin(lv);
@@ -3489,14 +3761,21 @@ function chooseFoe(first){
   const g=document.createElement('div');g.className='foegrid';
   FOES.filter(f=>f.id!=='ocaos').forEach(f=>{
     const el=document.createElement('div');
-    el.className='foe'+(f.id==='deus'?' foeGod':'')+(f.id==='ordem'?' foeOrder':'');
+    el.className='foe'+(f.id==='deus'?' foeGod':'')+(f.id==='ordem'?' foeOrder':'')+(f.id==='diabo'?' foeDevil':'');
     el.style.color=f.col;
     el.innerHTML=`<div class="fic">${f.ic}</div><div class="fn">${f.n}</div>
       <div class="fhp">❤ ${f.hp} VIDA</div><div class="fp">${f.pass.t}</div>
       ${f.id==='deus'?'<div class="fmax">☠ DIFICULDADE MÁXIMA</div>':''}
-      ${f.id==='ordem'?'<div class="fmax fmaxO">🌀 VOCÊ JOGA COMO O CAOS</div>':''}`;
+      ${f.id==='ordem'?'<div class="fmax fmaxO">🌀 VOCÊ JOGA COMO O CAOS</div>':''}
+      ${f.id==='diabo'?'<div class="fmax fmaxDevil">👹 DIFICULDADE MÁXIMA · TAMBOR REAL</div>':''}`;
     el.onclick=()=>{
       S.click();foe=f;ov.remove();
+      if(f.id==='diabo'){
+        if(mode===2){mode=1;document.body.classList.remove('coop');
+          const mb=$('modeBtn');if(mb)mb.textContent='👥 MODO: 1 JOGADOR';}
+        if(survival){survival=false;survKills=0;
+          log('👹 <b>DESAFIO INDIVIDUAL</b>: sobrevivência foi encerrada; o Diabo não divide a mesa com uma fila de inimigos.');}
+      }
       $('log').innerHTML='';
       log(`⚔ novo oponente: <b>${f.ic} ${f.n}</b> — ${f.pass.t}`);
       if(f.id==='deus'){
@@ -3521,6 +3800,13 @@ function chooseFoe(first){
         log('🌀 a <b>INSANIDADE</b> sobe a cada rodada. quanto mais alta, mais frequentes os surtos — e cada surto pode te SALVAR ou te ARRUINAR (50/50).');
         S.doomBell();flash('#ff174444');
       }
+      if(f.id==='diabo'){
+        devilTauntIndex=0;
+        log('👹 <b>MESA DO DIABO</b>: baralho de truco, texto sem piedade, IA que lê a rodada e 96 de vida infernal.');
+        log('🔫 a <b>INSTABILIDADE carrega o tambor</b>. cada derrota/dano gira de 1 a 6 câmaras; se parar numa carregada, o tiro tira vida. quanto pior você fica, mais balas entram — e cada bala dói mais.');
+        log('🃏 sem eventos, alucinações ou HUD barulhento: aqui só tem feltro, cartas e decisões que você vai defender mal.');
+        S.doomBell();flash('#ef3d3555');shake();
+      }
       banner(f.n,f.col);startNewRun();
     };
     g.appendChild(el);
@@ -3535,8 +3821,10 @@ let kingBonus=0;
 /* ============ REI DO CAOS: MANIPULAÇÃO ============ */
 const isCoop=()=>mode===3;              // 2 jogadores humanos contra o oponente do jogo
 const vsFoe=()=>mode===1||mode===3;     // existe um oponente controlado pela máquina
+const isDevilMode=()=>!!(vsFoe()&&foe&&foe.id==='diabo');
 const foeMaxHp=()=>vsFoe()?(isCoop()?foe.hp*2:foe.hp):20;
 const isKing=()=>vsFoe()&&foe.id==='rei';
+const devilCardBoost=()=>isDevilMode()?Math.min(10,4+Math.floor(Math.max(0,(st.rd||1)-1)/4)):0;
 const KINGACTS=[
  {n:'REESCREVER A REGRA',d:'o Rei troca a regra do caos por outra.',
   run:()=>{newRule();log('👑 o Rei REESCREVEU a regra do caos.')}},
@@ -3582,6 +3870,89 @@ function kingAct(){
 
 /* ============ INSANIDADE ============ */
 let san=0;
+let devilGun={chamber:0,bullets:new Set(),spent:new Set(),charged:0,pulls:0,hits:0,
+  lastText:'',spinAngle:720};
+let devilTauntIndex=0;
+function devilBulletTarget(){return clamp(1+Math.floor(san/25),1,5)}
+function syncDevilBullets(){
+  if(!isDevilMode())return;
+  const target=devilBulletTarget();
+  while(devilGun.charged<target){
+    const used=new Set([...devilGun.bullets,...devilGun.spent]);
+    const free=Array.from({length:6},(_,i)=>i).filter(i=>!used.has(i));
+    if(!free.length)break;
+    devilGun.bullets.add(free[Math.floor(Math.random()*free.length)]);
+    devilGun.charged++;
+  }
+}
+function resetDevilGun(){
+  devilGun={chamber:Math.floor(Math.random()*6),bullets:new Set(),spent:new Set(),
+    charged:0,pulls:0,hits:0,lastText:'TAMBOR CARREGADO · UMA CÂMARA',spinAngle:720};
+  if(isDevilMode())syncDevilBullets();
+  updateDevilHUD();
+}
+function updateDevilHUD(){
+  if(!isDevilMode())return;
+  const hp1=$('devilHp1'),hp2=$('devilHp2'),round=$('devilRound');
+  if(hp1)hp1.textContent=Math.max(0,Math.ceil(st.hp1));
+  if(hp2)hp2.textContent=Math.max(0,Math.ceil(st.hp2));
+  if(round)round.textContent='MÃO '+(st.rd||1);
+  const state=$('devilGunState'),count=$('devilGunCount');
+  if(state)state.textContent=devilGun.lastText||'INSTABILIDADE · TAMBOR CARREGADO';
+  if(count)count.textContent=`${devilGun.bullets.size}/6 CÂMARAS · INSTABILIDADE ${Math.round(san)}%`;
+  const cylinder=$('devilCylinder');
+  if(cylinder){
+    cylinder.setAttribute('aria-label',`${devilGun.bullets.size} câmaras carregadas; instabilidade ${Math.round(san)} por cento`);
+    cylinder.querySelectorAll('.devilChamber').forEach((chamber,i)=>{
+      chamber.classList.toggle('aimed',i===devilGun.chamber);
+      chamber.classList.toggle('loaded',devilGun.bullets.has(i));
+      chamber.classList.toggle('spent',devilGun.spent.has(i));
+    });
+  }
+}
+function triggerDevilRoulette(damage,loss=false){
+  if(!isDevilMode())return;
+  const stress=Math.max(1,Math.ceil(Number(damage)||0));
+  const oldSan=san;
+  san=clamp(san+Math.min(28,Math.ceil(stress*1.35)+(loss?2:0)),0,100);
+  if(san>oldSan+.4)sanRising=true;
+  syncDevilBullets();
+  const pulls=clamp(Math.ceil(stress/5)+(loss?1:0),1,6);
+  let steps=0,hits=0,totalDamage=0;
+  for(let i=0;i<pulls;i++){
+    const spin=1+Math.floor(Math.random()*6);
+    steps+=spin;devilGun.chamber=(devilGun.chamber+spin)%6;devilGun.pulls++;
+    if(devilGun.bullets.has(devilGun.chamber)){
+      devilGun.bullets.delete(devilGun.chamber);
+      devilGun.spent.add(devilGun.chamber);
+      devilGun.hits++;hits++;
+      const shotDamage=2+Math.floor(san/30);
+      totalDamage+=shotDamage;st.hp1-=shotDamage;
+      floatTxt($('devilHp1'),'-'+shotDamage,'#ef3d35');
+    }
+  }
+  devilGun.spinAngle=360*pulls+steps*60+devilGun.chamber*60;
+  const cylinder=$('devilCylinder');
+  if(cylinder){
+    cylinder.classList.remove('spinning');void cylinder.offsetWidth;
+    cylinder.style.setProperty('--devil-angle',devilGun.spinAngle+'deg');
+    cylinder.classList.add('spinning');
+    setTimeout(()=>cylinder.classList.remove('spinning'),1050);
+  }
+  if(hits){
+    devilGun.lastText=`BANG · −${totalDamage} VIDA`;
+    try{S.doomBell();flash('#ef3d3588');shake()}catch(e){}
+    const shot=document.createElement('div');shot.className='devilShot';
+    shot.textContent=hits>1?`BANG ×${hits} · −${totalDamage} VIDA`:`BANG · −${totalDamage} VIDA`;
+    document.body.appendChild(shot);setTimeout(()=>shot.remove(),1000);
+    log(`🔫 <b>TIRO NO TAMBOR</b>: ${hits>1?hits+' disparos acertaram você':`a câmara carregada acertou você`} — <b>−${totalDamage} VIDA</b>.`);
+  }else{
+    devilGun.lastText='CLIQUE · CÂMARA VAZIA';
+    try{S.click()}catch(e){}
+    log(`🔫 o tambor girou ${pulls} vez${pulls===1?'':'es'}: <b>CLIQUE.</b> desta vez a câmara estava vazia.`);
+  }
+  updateDevilHUD();
+}
 /* ---- ESTABILIDADE: 100 = realidade firme, 0 = tudo desmorona.
        internamente ainda usamos 'san' (0..100) como INSTABILIDADE. ---- */
 const estab=()=>Math.round(100-san);
@@ -3602,6 +3973,11 @@ const WHISPERS=['jogue a da esquerda…','ele já sabe','os números mentem','n�
 /* a INSANIDADE existe em TODOS os modos */
 const SAN_SLOW=.62;   // ganho global de insanidade (menor = mais devagar)
 function addSan(n){
+  if(isDevilMode()){
+    const prev=san;san=clamp(san+n,0,100);
+    if(san>prev+.4)sanRising=true;
+    updSan();return;
+  }
   if(isGod()||heroIs('monge'))return;   // Deus do Caos e o Monge não sofrem insanidade
   if(isOrdemFoe()){ // você É o caos: a instabilidade te fortalece, não te fere
     san=clamp(san+n*.5,0,100);updSan();return; }
@@ -3620,6 +3996,11 @@ function addSan(n){
 }
 /* a mente se recupera sozinha um pouco a cada rodada */
 function sanDecay(){
+  if(isDevilMode()){
+    const prev=san;san=clamp(san+.9+chaosLevel()*.03,0,100);
+    if(san>prev+.4)sanRising=true;
+    updSan();return;
+  }
   // a INSTABILIDADE agora cresce sozinha conforme o caos avança
   const lv=chaosLevel();
   const cresce=lv*0.42;                       // quanto mais fundo, mais rápido desmorona
@@ -3630,6 +4011,13 @@ function sanDecay(){
   updSan();
 }
 function updSan(){
+  if(isDevilMode()){
+    $('sanBox').style.display='none';
+    document.body.classList.remove('insane','insaneHigh');
+    const smile=$('smileWrap');if(smile){smile.style.opacity=0;smile.className=''}
+    const tint=$('chaosTint');if(tint)tint.style.opacity='0';
+    syncDevilBullets();updateDevilHUD();updSanMsgRate();updBarSign();return;
+  }
   if(isGod()){$('sanBox').style.display='none';return}
   $('sanBox').style.display='';
   $('sanFill').style.width=san+'%';$('sanTxt').textContent=estab()+' / 100 ESTÁVEL';
@@ -3657,7 +4045,7 @@ function updSan(){
 /* quanto mais insano, MAIS mensagens aleatórias */
 let sanMsgTimer=null,sanMsgRate=0;
 function updSanMsgRate(){
-  const want=san<28?0:Math.max(1500,6500-san*42);
+  const want=isDevilMode()?0:(san<28?0:Math.max(1500,6500-san*42));
   if(want===sanMsgRate)return;
   sanMsgRate=want;
   if(sanMsgTimer){clearInterval(sanMsgTimer);sanMsgTimer=null}
@@ -3678,6 +4066,7 @@ function whisper(){
   if(sfx)tone(80+visualRand()*70,.5,'sine',.03+san/3000);
 }
 function hallucinate(){
+  if(isDevilMode())return;
   const em=['👑','👁','🩸','☠','🌀','🃏','⚖','🕳','😃','🫥','🦷'];
   const n=1+Math.floor(san/30);
   for(let i=0;i<n;i++){
@@ -3734,7 +4123,7 @@ function foeLine(won){
 }
 let lastSanTaunt=0;
 function foeNoticesInsanity(){
-  if(!vsFoe()||san<30)return;
+  if(!vsFoe()||isDevilMode()||san<30)return;
   let pool=null,tier=0;
   SANTAUNT.forEach(([t,arr])=>{if(san>=t){pool=arr;tier=t}});
   if(!pool||tier===lastSanTaunt||Math.random()>.55)return;
@@ -3866,14 +4255,29 @@ function rollAnomalia(){
 }
 function updHeroBox(){
   const b=$('heroBox');if(!b)return;
-  b.innerHTML=`<div class="mini">🎭 PERSONAGEM · <b>${bank}</b> pts</div>
-    <div style="display:flex;align-items:center;gap:8px;margin-top:3px">
-      <span style="font-size:26px">${hero.ic}</span>
-      <div style="text-align:left;line-height:1.25">
-        <div style="font-size:11.5px;font-weight:900;color:${hero.col}">${hero.n}</div>
-        <div style="font-size:9px;color:#9fc0d4">${hero.t}</div>
-      </div></div>`;
+  b.className='box fighterHud playerFighter';
+  b.style.setProperty('--fighter-accent',hero.col||'#009dff');
+  b.setAttribute('aria-label',`Seu personagem: ${hero.n}. Vida e habilidade.`);
+  if(!$('playerHudIcon')){
+    b.innerHTML=`<div class="fighterHead">
+        <span class="fighterPortrait" id="playerHudIcon">${hero.ic}</span>
+        <div class="fighterIdentity">
+          <div class="fighterRole" id="playerHudRole">SEU PERSONAGEM</div>
+          <strong class="fighterMain" id="l1">VOCÊ</strong>
+          <small class="fighterName" id="playerHudName">${hero.n}</small>
+        </div>
+        <span class="fighterBank" id="playerHudBank">🏦 ${bank}</span>
+      </div>
+      <div class="hpline fighterHpRow"><span class="lbl fighterHpLabel">VIDA</span><span class="bar blue fighterBar"><i id="b1" style="width:100%"></i></span><span class="hpn" id="h1">20</span></div>
+      <div class="fighterAbility" id="playerHudAbility">${hero.t}</div>`;
+  }else{
+    $('playerHudIcon').textContent=hero.ic;
+    $('playerHudName').textContent=hero.n;
+    $('playerHudAbility').textContent=hero.t;
+    $('playerHudBank').textContent='🏦 '+bank;
+  }
 }
+
 function heroScreen(first){
   const ov=document.createElement('div');ov.className='overlay';
   const wrap=document.createElement('div');wrap.style.textAlign='center';
@@ -4369,6 +4773,7 @@ let barCooldown=0,barWasOpen=false;
 /* ---- placa do bar no canto: mostra quando ele está aberto ---- */
 function updBarSign(){
   const el=$('barSign');if(!el)return;
+  if(isDevilMode()){el.style.display='none';barWasOpen=false;return}
   if(!vsFoe()){el.style.display='none';return}
   el.style.display='';
   const meter=$('barMeter'),stt=$('barState');
@@ -4396,7 +4801,7 @@ function bestCard(arr){
   return bi;
 }
 function barOfDrink(){
-  if(over||!vsFoe()||busy||isGod())return false;
+  if(over||!vsFoe()||busy||isGod()||isDevilMode())return false;
   if(barCooldown>0){barCooldown--;return false}
   // aparece quando a INSANIDADE está SUBINDO
   if(san<30||!sanRising)return false;
@@ -4520,7 +4925,7 @@ const ORDERLINES=[
 ];
 let orderCooldown=0;
 function orderIntervenes(){
-  if(over||!vsFoe())return false;
+  if(over||!vsFoe()||isDevilMode())return false;
   if(orderCooldown>0){orderCooldown--;return false}
   // a Ordem aparece quando você está por baixo: pouca vida, muita insanidade ou caos altíssimo
   const desperate=(st.hp1<=6?.34:0)+(san>=70?.24:0)+(chaosLevel()>=25?.18:0)+(st.streak===0&&st.l>st.w?.10:0);
@@ -4551,7 +4956,7 @@ function orderIntervenes(){
 
 /* a insanidade pode AJUDAR ou ATRAPALHAR — rolado no fim de cada rodada */
 function sanityRoll(){
-  if(isGod()||san<20)return;
+  if(isDevilMode()||isGod()||san<20)return;
   if(Math.random()>san/110)return;         // quanto mais insano, mais frequente
   hallucinate();
   const bom=Math.random()<.5;              // 50/50: dádiva ou ruína
@@ -4580,12 +4985,21 @@ function sanityRoll(){
   if(st.hp1<=0||st.hp2<=0)setTimeout(finish,700);
 }
 function taunt(){
-  if(!vsFoe()||!foe.taunt||Math.random()>.4)return;
+  if(!vsFoe()||!foe.taunt||!foe.taunt.length)return;
+  let line;
+  if(isDevilMode()){
+    line=foe.taunt[devilTauntIndex%foe.taunt.length];devilTauntIndex++;
+  }else{
+    if(Math.random()>.4)return;
+    line=pick(foe.taunt);
+  }
   const r=$('s2').getBoundingClientRect();
-  const t=document.createElement('div');t.className='taunt';t.style.borderColor=foe.col;t.style.color=foe.col;
-  t.textContent=foe.ic+' "'+pick(foe.taunt)+'"';
+  const t=document.createElement('div');t.className='taunt'+(isDevilMode()?' devilTaunt':'');
+  t.style.borderColor=foe.col;t.style.color=foe.col;
+  t.textContent=foe.ic+' “'+line+'”';
   t.style.left=Math.min(window.innerWidth-230,r.left)+'px';t.style.top=Math.max(10,r.top-52)+'px';
-  document.body.appendChild(t);setTimeout(()=>t.remove(),2200);
+  document.body.appendChild(t);setTimeout(()=>t.remove(),isDevilMode()?2800:2200);
+  if(isDevilMode())log(`<span style="color:#e7c58e">👹 <i>${line}</i></span>`);
 }
 
 /* ============ ESTADO ============ */
@@ -4624,6 +5038,41 @@ function log(t){
   while(L.childElementCount>60)L.lastElementChild.remove();
 }
 
+const DEVIL_CARD_LINES=[
+  'Seu plano A pediu demissão. O B não apareceu.',
+  'A confiança é alta. A leitura da mesa, nem tanto.',
+  'Essa jogada veio sem manual? Você não abriria mesmo.',
+  'Se blefe fosse ponto, você ainda estaria perdendo.',
+  'Sua estratégia está virada para baixo. Como a sua carta.',
+  'O baralho embaralhou; seu raciocínio ficou em ordem.',
+  'Boa tentativa. A palavra “boa” foi por educação.',
+  'O truco foi alto. O argumento, rasteiro.',
+  'A mesa inteira entendeu. Você ainda está pensando.',
+  'Seu melhor movimento continua no menu.',
+  'Não é azar. É você, com ótima consistência.',
+  'Até a carta pediu para não ser associada a essa jogada.',
+  'O blefe convenceu alguém? Não conte comigo.',
+  'Sua mão tem potencial. Pena que não é o seu.',
+  'A esperança não vale ponto. Confira o placar.',
+  'Essa carta merecia um jogador menos distraído.',
+  'O silêncio depois da jogada foi a crítica mais gentil.',
+  'Você chamou isso de plano. O Diabo chamou de intervalo.',
+  'O baralho tem quatro naipes. Você escolheu o quinto: erro.',
+  'Fim da mão. Seu argumento desistiu antes.'
+];
+function devilCardSuit(c){
+  const suits={fogo:['♥','COPAS'],agua:['♣','PAUS'],terra:['♦','OUROS'],ar:['♠','ESPADAS'],vazio:['✦','CORINGA']};
+  return suits[c.el]||((c.ordem||c.god)?['✦','TRUNFO']:['♣','PAUS']);
+}
+function devilCardRank(c){
+  const faces=['4','5','6','7','Q','J','K','A','2','3'];
+  const value=Math.max(1,Math.round(Number(c.v)||1));
+  return faces[(value-1)%faces.length];
+}
+function devilCardQuote(c){
+  const seed=Math.abs(Math.round(Number(c.v)||0)+(st.rd||1)*7+String(c.ic||'').charCodeAt(0));
+  return DEVIL_CARD_LINES[seed%DEVIL_CARD_LINES.length];
+}
 function cardEl(c,cls,fn){
   const el=document.createElement('div');
   el.className='card deal '+(cls||'')+' '+(c.r||'')+(c.god?' godcard':'')+(c.ordem?' ordem':'');
@@ -4631,24 +5080,35 @@ function cardEl(c,cls,fn){
   if(c.pw&&c.ordem&&isGod()&&corrPenalty()>.15)el.classList.add('weakened');
   const RAR={comum:'COMUM',rara:'RARA',lendaria:'LENDÁRIA',boss:'CHEFE',puzzle:'PUZZLE',ordem:'✦ ORDEM'};
   if(c.god)RAR.boss='🕳 DIVINA';
-  el.innerHTML=`
-    <div class="hdr">
-      <span class="ico">${c.ic||'★'}${c.el?' '+EL[c.el]:''}</span>
-      <span class="rar">${RAR[c.r]||''}</span>
-    </div>
-    <div class="body">
-      <div class="n">${c.n}</div>
-      <div class="v">${c.v}</div>
-      <div class="e">${c.e}</div>
-      ${[c.pw,c.pw2].filter(Boolean).map(p=>`<div class="pw">${p.n}<span>${p.t}</span></div>`).join('')}
-    </div>`;
+  const powers=[c.pw,c.pw2].filter(Boolean).map(p=>`<div class="pw">${p.n}<span>${p.t}</span></div>`).join('');
+  if(isDevilMode()){
+    const [suit,suitName]=devilCardSuit(c);
+    const marked=c.devilBoost?`<div class="pw devilPassive">MARCA DO DIABO<span>+${c.devilBoost} de força. Ele trapaceia; você chama de surpresa.</span></div>`:'';
+    el.innerHTML=`<div class="hdr"><span class="trucoRank">${devilCardRank(c)}<i>${suit}</i></span>
+        <span class="trucoSuit">${suitName}</span></div>
+      <div class="body"><div class="trucoWatermark">${suit}</div>
+        <div class="n">${c.n}</div><div class="v">${c.v}</div>
+        <div class="e">“${devilCardQuote(c)}”</div>${powers}${marked}</div>
+      <div class="trucoFoot">${c.devilBoost?'CARTA MARCADA':'TRUCO DO DIABO'}</div>`;
+  }else{
+    el.innerHTML=`
+      <div class="hdr">
+        <span class="ico">${c.ic||'★'}${c.el?' '+EL[c.el]:''}</span>
+        <span class="rar">${RAR[c.r]||''}</span>
+      </div>
+      <div class="body">
+        <div class="n">${c.n}</div>
+        <div class="v">${c.v}</div>
+        <div class="e">${c.e}</div>${powers}
+      </div>`;
+  }
   if(fn){el.onclick=fn;
     if(handKeyN>=0){
       const kk=['1','2','3','4'][handKeyN++];
       if(kk){const t=document.createElement('span');t.className='kbd';t.textContent=kk;el.appendChild(t)}
     }
   }else el.style.cursor='default';
-  addAmbient(el,c);applyLies(el,c);
+  if(!isDevilMode()){addAmbient(el,c);applyLies(el,c)}
   return el;
 }
 let handKeyN=-1;
@@ -4702,19 +5162,39 @@ function upd(){
   $('h1').textContent=Math.max(0,st.hp1);$('h2').textContent=Math.max(0,st.hp2);
   $('b1').style.width=clamp(st.hp1/20*100,0,100)+'%';$('b2').style.width=clamp(st.hp2/max2*100,0,100)+'%';
   tickChaos();updSan();updBarSign();try{drawFace()}catch(e){}
-  if(vsFoe()){$('foeInfo').textContent=foe.ic+' '+foe.n;$('foeInfo').style.color=foe.col;
-    $('foePass').textContent=foe.pass.t}
-  else{$('foeInfo').textContent='👥 JOGADOR 2';$('foeInfo').style.color='';$('foePass').textContent='humano imprevisível'}
-  if(isCoop()){
-    $('l1').innerHTML='DUPLA <span class="teamBadge">2v1</span>';
-    $('foePass').textContent=foe.pass.t+' · VIDA DOBRADA';
+  const playerHud=$('heroBox'),enemyHud=$('foeHud');
+  if(playerHud){
+    playerHud.style.setProperty('--fighter-accent',hero.col||'#009dff');
+    $('playerHudRole').textContent=isCoop()?'ALIADOS · 2 JOGADORES':'SEU PERSONAGEM';
+    $('playerHudName').textContent=hero.n;
+    $('playerHudAbility').textContent=hero.t;
+    $('playerHudBank').textContent='🏦 '+bank;
+    $('playerHudIcon').textContent=hero.ic;
   }
-  $('l1').textContent=name(1);$('l2').textContent=name(2);
+  $('l1').textContent=isCoop()?'DUPLA':name(1);
+  $('l2').textContent=name(2);
+  if(vsFoe()){
+    const nomesIA={best:'TÁTICA',random:'IMPREVISÍVEL',low:'ECONÔMICA',power:'ESPECIALISTA EM PODERES',elem:'ELEMENTAL',god:'ADAPTATIVA',order:'ESTRATÉGICA',chaos:'CAÓTICA',devil:'IMPLACÁVEL'};
+    $('foeHudIcon').textContent=foe.ic;
+    $('foeHudRole').textContent=isCoop()?'INIMIGO DA DUPLA':'OPONENTE · IA';
+    $('foeInfo').textContent=`IA ${nomesIA[foe.ai]||'TÁTICA'} · ${Math.round(perfilIA()*100)}%`;
+    $('foePass').textContent=foe.pass.t+(isCoop()?' · VIDA DOBRADA':'');
+    if(enemyHud)enemyHud.style.setProperty('--fighter-accent',foe.col||'#fe5f55');
+    $('foeInfo').style.color=foe.col||'#fe5f55';
+  }else{
+    $('foeHudIcon').textContent='👤';
+    $('foeHudRole').textContent=window.__onlineSession?'OPONENTE ONLINE':'OPONENTE HUMANO';
+    $('foeInfo').textContent=window.__onlineSession?'DUELO ONLINE':'JOGADOR LOCAL';
+    $('foeInfo').style.color='#b9cad8';
+    $('foePass').textContent='jogador humano · sem passiva de IA';
+    if(enemyHud)enemyHud.style.setProperty('--fighter-accent','#57c1ff');
+  }
   $('roundBox').textContent=(isBoss?'☠ CHEFE — ':'')+'RODADA '+st.rd;
   $('roundBox').className='round'+(isBoss?' boss':'');
   $('scoreN').textContent=st.score;$('multN').textContent='×'+st.mult;
   $('score').innerHTML=`<span class="chip">V ${st.w}</span><span class="chip">D ${st.l}</span><span class="chip">E ${st.e}</span><span class="chip">🔥 ${st.streak}</span>`;
   $('hudRule').textContent=nullified?'ANULADA 🚫':(rule?rule.n:'—');
+  updateDevilHUD();
 }
 
 /* ============ ROUND ============ */
@@ -4726,6 +5206,7 @@ function newRule(){
   upd();
 }
 function startRound(){
+  const devilRoundHpBefore=Number(st.hp1)||0;
   picked={1:null,2:null,3:null};buffs={1:0,2:0,3:0};flags={1:{},2:{},3:{}};turn=1;
   coopBonus=0;$('s1').className='slot'+(isCoop()?' coopSlot':'');
   dieRolls=lvCfg(chaosLevel()).dieRolls;dieUsed=false;
@@ -4737,6 +5218,7 @@ function startRound(){
   if(hasPacto('calma')){san=clamp(san-3,0,100);updSan()}
   if(maldAtiva('sangria')){st.hp1=Math.max(0,st.hp1-2);floatTxt($('h1'),'-2','#ff1744');
     log('🩸 <b>FERIDA ABERTA</b>: -2 de vida.')}
+  if(isDevilMode()&&st.hp1<devilRoundHpBefore)triggerDevilRoulette(devilRoundHpBefore-st.hp1,false);
   if(st.hp1<=0){finish();return}
   const C=CL();
   isBoss=st.rd%C.boss===0;
@@ -4786,14 +5268,14 @@ function startRound(){
   // GEMINAÇÃO: gêmeos jogam com mão maior
   if(vsFoe()&&foe.pass.k==='twin')hands[2].push(mkCard(),mkCard());
   // carta-puzzle aparece de vez em quando
-  if(!isGod()&&Math.random()<C.puz)hands[1][Math.floor(Math.random()*3)]=mkPuzzle();
+  if(!isGod()&&!isDevilMode()&&Math.random()<C.puz)hands[1][Math.floor(Math.random()*3)]=mkPuzzle();
   if(mode===2&&Math.random()<C.puz)hands[2][Math.floor(Math.random()*3)]=mkPuzzle();
   // ---- PASSIVAS DO OPONENTE ----
   if(vsFoe()&&st.rd>1){
     const P=foe.pass.k;
     if(P==='poison'){st.hp1-=1;floatTxt($('h1'),'-1','#7fbf3f');log('🧪 VENENO da Bruxa: você perde 1 de vida')}
     if(P==='tax'&&st.score>0){const t=Math.floor(st.score*.15);st.score=Math.max(0,st.score-t);popEl('scoreN');
-      log(`🧾 IMPOSTO do Contador: -${t} pontos`)}
+      log(foe.id==='agiota'?`💸 <b>JUROS DO AGIOTA</b>: -${t} pontos — dívida não prescreve.`:`🧾 IMPOSTO do Contador: -${t} pontos`)}
     if(P==='king'){kingBonus+=2;log(`👑 REALEZA: o Rei acumula +${kingBonus} de valor`);
       addSan(6+chaosLevel()*.9);kingAct()}
     if(P==='god'){
@@ -4826,7 +5308,7 @@ function startRound(){
   if(inv[1].length<4&&Math.random()<C.items)inv[1].push(mkItem());
   if(isCoop()&&inv[3].length<4&&Math.random()<C.items)inv[3].push(mkItem());
   if(inv[2].length<4&&Math.random()<C.items)inv[2].push(mkItem());
-  if(heroIs('arquiteto')&&!over&&!window.__onlineSession){architectRule();return}
+  if(heroIs('arquiteto')&&!isDevilMode()&&!over&&!window.__onlineSession){architectRule();return}
   newRule();
   // ---- REGRAS EMPILHADAS conforme o nível de caos ----
   extraRules=[];
@@ -4845,7 +5327,7 @@ function startRound(){
   // nível alto: chance de um SEGUNDO evento
   if(chaosLevel()>=4&&Math.random()<.35){log('🌀 o caos não parou…');runEvent()}
   if(over)return;
-  if(st.rd>1&&st.rd%3===1&&vsFoe()){shop();return}
+  if(st.rd>1&&st.rd%3===1&&vsFoe()&&!isDevilMode()){shop();return}
   renderTurn();
 }
 
@@ -4890,13 +5372,13 @@ function afterRule(){
   if(!over&&san>=45&&barOfDrink()){sanRising=false;return}
   if(chaosLevel()>=4&&Math.random()<.35){log('🌀 o caos não parou…');runEvent()}
   if(over)return;
-  if(st.rd>1&&st.rd%3===1&&vsFoe()){shop();return}
+  if(st.rd>1&&st.rd%3===1&&vsFoe()&&!isDevilMode()){shop();return}
   renderTurn();
 }
 
 /* ============ LOJA ============ */
 function shop(){
-  if(window.__onlineSession)return;
+  if(window.__onlineSession||isDevilMode())return;
   S.coin();
   const ov=document.createElement('div');ov.className='overlay';
   ov.innerHTML='<h2>LOJA DO CAOS</h2><p>'+(isCoop()
@@ -5037,6 +5519,7 @@ function useItem(i){
   if(busy)return;
   const p=turn, o=(p===2)?1:2, it=inv[p][i];   // no coop, J1 e J2 miram o mesmo oponente
   if(!it||it.used)return;
+  const devilHpBeforeItem=Number(st.hp1)||0;
   it.used=true;S.item();
   switch(it.t){
     case'buff':buffs[p===3?1:p]+=it.v;break;
@@ -5056,6 +5539,7 @@ function useItem(i){
     case'copy':flags[p].copy=1;break;
     case'bomb':st.hp1-=it.v;st.hp2-=it.v;shake();floatTxt($('h1'),'-'+it.v,'#f9c74f');floatTxt($('h2'),'-'+it.v,'#f9c74f');break;
   }
+  if(isDevilMode()&&st.hp1<devilHpBeforeItem)triggerDevilRoulette(devilHpBeforeItem-st.hp1,false);
   log(`✨ ${name(p)} usou <b>${it.n}</b> — ${it.e}`);
   inv[p]=inv[p].filter(x=>!x.used);
   upd();renderTurn();
@@ -5135,85 +5619,390 @@ async function choose(i){
 }
 
 
-/* ---- jogada da máquina (usada no 1P e no COOP) ---- */
+/* ---- IA tática: prevê regra, poderes, vida e conserva cartas fortes ---- */
+function comAleatoriedadeMediaIA(fn){
+  const aleatorio=Math.random;Math.random=()=>.5;
+  try{return fn()}finally{Math.random=aleatorio}
+}
+function valoresIA(carta,alvo){
+  if(!carta)return 0;
+  let v=Number(carta.v)||0;
+  const poderes=[carta.pw,carta.pw2].filter(p=>p&&p.k);
+  poderes.forEach(p=>{
+    switch(p.k){
+      case'gigante':if(st.rd%2===0)v+=4;break;
+      case'sortudo':v+=3;break;                         // média de 1–5
+      case'caotico':v=7;break;                          // média de 1–13
+      case'maldito':v-=3;break;
+      case'espelho':v=(Number(alvo&&alvo.v)||0)+1;break;
+      case'berserk':v+=Math.min(8,Math.max(0,20-st.hp2));break;
+      case'inflacao':v+=st.rd*2;break;
+      case'sanguinario':if(st.hp2<10)v+=6;break;
+      case'miragem':if(v%2!==0)v*=2;break;
+      case'gravidade':v=Math.ceil(v/2);break;
+      case'trovao':v+=3;break;
+      case'ordem_puro':v=10;break;
+    }
+  });
+  if(carta.puz)v+=5.45;                               // o bot resolve 65% dos puzzles
+  if(foe.pass.k==='burn'&&carta.el==='fogo')v+=3;
+  if(foe.pass.k==='king'&&kingBonus)v+=kingBonus;
+  if(foe.pass.k==='devil')v+=devilCardBoost();
+  return v;
+}
+function poderesDeConfrontoIA(carta,oposta,lado,semPoder){
+  if(!carta||semPoder||flags[lado===1?2:1].antipower||
+     (lado===1&&maldAtiva('sempoder')))return[];
+  let poderes=[carta.pw,carta.pw2].filter(p=>p&&p.k);
+  if([oposta&&oposta.pw,oposta&&oposta.pw2].some(p=>p&&p.k==='ancora'))
+    poderes=poderes.filter(p=>p.k==='ancora');
+  return poderes;
+}
+function temPoderIA(lista,chave){return lista.some(p=>p&&p.k===chave)}
+function executarRegraIA(regra,a,b,simulado){
+  if(!regra||typeof regra.f!=='function')return[a,b];
+  try{const resultado=regra.f(a,b,simulado);return Array.isArray(resultado)?resultado:[a,b]}
+  catch(e){return[a,b]}
+}
+function preverConfrontoIA(cartaIA,cartaHumana){
+  if(!cartaIA||!cartaHumana)return{nota:0,vencedor:0,danoIA:0,danoHumano:0};
+  const anulada=!!(nullified||nullifyRule);
+  const semPoder=!!((!anulada&&rule&&rule.nopw)||evtFlags.mudo);
+  const p1=poderesDeConfrontoIA(cartaHumana,cartaIA,1,semPoder);
+  const p2=poderesDeConfrontoIA(cartaIA,cartaHumana,2,semPoder);
+  let a=Number(cartaHumana.v)||0,b=Number(cartaIA.v)||0;
+  if(foe.pass.k==='mirror'&&a>b)b=clamp(a,1,40);
+  if(foe.pass.k==='devil'&&!cartaIA.devilBoost)b+=devilCardBoost();
+  if(cartaIA.puz)b+=5.45;
+  if(foe.pass.k==='burn'&&cartaIA.el==='fogo')b+=3;
+  if(foe.pass.k==='king'&&kingBonus)b+=kingBonus;
+  if(temPoderIA(p1,'gravidade'))b=Math.ceil(b/2);
+  if(temPoderIA(p2,'gravidade'))a=Math.ceil(a/2);
+  if(temPoderIA(p1,'glacial'))b-=5;
+  if(temPoderIA(p2,'glacial'))a-=5;
+  let buff1=buffs[1],buff2=buffs[2];
+  if(temPoderIA(p1,'ferrugem')&&buff2>0)buff2=0;
+  if(temPoderIA(p2,'ferrugem')&&buff1>0)buff1=0;
+  const baseA=a,baseB=b;
+  const aplicarValor=(v,poder,me,oposto)=>{
+    if(!poder)return v;
+    switch(poder.k){
+      case'gigante':return st.rd%2===0?v+4:v;
+      case'sortudo':return v+3;
+      case'caotico':return 7;
+      case'maldito':return v-3;
+      case'espelho':return oposto+1;
+      case'berserk':return v+Math.min(8,20-st['hp'+me]);
+      case'inflacao':return v+st.rd*2;
+      case'sanguinario':return st['hp'+me]<10?v+6:v;
+      case'miragem':return v%2?v*2:v;
+      case'gravidade':return Math.ceil(v/2);
+      case'trovao':return v+3;
+      case'ordem_puro':return 10;
+      default:return v;
+    }
+  };
+  a=aplicarValor(a,p1[0],1,baseB);if(p1[1])a=aplicarValor(a,p1[1],1,baseB);
+  b=aplicarValor(b,p2[0],2,baseA);if(p2[1])b=aplicarValor(b,p2[1],2,baseA);
+  if(flags[1].copy)a=Number(cartaIA.v)||0;
+  if(flags[2].copy)b=Number(cartaHumana.v)||0;
+  a+=buff1;b+=buff2;
+  const useElements=!(!anulada&&rule&&rule.noel);
+  const elementBonus=!anulada&&rule&&rule.elx?rule.elx:3;
+  const el1=flags[1].element?BEATS[cartaIA.el]||cartaHumana.el:cartaHumana.el;
+  const el2=flags[2].element?BEATS[cartaHumana.el]||cartaIA.el:cartaIA.el;
+  if(useElements&&el1&&el2&&el1!=='vazio'&&el2!=='vazio'){
+    if(BEATS[el1]===el2)a+=elementBonus;
+    else if(BEATS[el2]===el1)b+=elementBonus;
+  }
+  const furtivo1=temPoderIA(p1,'furtivo')||!!cartaHumana.ordem;
+  const furtivo2=temPoderIA(p2,'furtivo')||!!cartaIA.ordem;
+  const estadoSimulado={...st};
+  if(!anulada){
+    const r=executarRegraIA(rule,a,b,estadoSimulado);
+    if(!furtivo1)a=Number(r[0])||0;if(!furtivo2)b=Number(r[1])||0;
+  }
+  let vencedor=a>b?1:(b>a?2:0);
+  if(!vencedor){if(temPoderIA(p1,'teimoso'))vencedor=1;else if(temPoderIA(p2,'teimoso'))vencedor=2}
+  if(vencedor===0&&heroIs('espelhista'))vencedor=1;
+  // Fênix pode virar uma derrota por pouco em vitória.
+  if(vencedor&&!semPoder){
+    const perdedor=vencedor===1?2:1, poderes=perdedor===1?p1:p2;
+    if(temPoderIA(poderes,'fenix')&&!flags[perdedor].revived){
+      if(perdedor===1)a+=5;else b+=5;
+      vencedor=a>b?1:(b>a?2:0);
+    }
+  }
+  if(heroIs('sabio')){
+    a=(Number(cartaHumana.v)||0)+buff1;
+    a=aplicarValor(a,p1[0],1,baseB);if(p1[1])a=aplicarValor(a,p1[1],1,baseB);
+    vencedor=a>b?1:(b>a?2:0);
+  }
+  if(extraRules.length&&!anulada){
+    extraRules.forEach(r=>{const res=executarRegraIA(r,a,b,estadoSimulado);a=Number(res[0])||0;b=Number(res[1])||0});
+    vencedor=a>b?1:(b>a?2:0);
+  }
+  if(evtFlags.rule2&&!anulada){
+    const res=executarRegraIA(evtFlags.rule2,a,b,estadoSimulado);a=Number(res[0])||0;b=Number(res[1])||0;
+    vencedor=a>b?1:(b>a?2:0);
+  }
+  if(vencedor&&((evtFlags.inverso)||(maldAtiva('inverte'))))vencedor=vencedor===1?2:1;
+  if(!vencedor&&hasPacto('espelho'))vencedor=1;
+  const margem=Math.abs(a-b);
+  let dano=Math.max(1,Math.round(margem));
+  if(!anulada&&rule){if(rule.x2)dano*=2;if(rule.x3)dano*=3}
+  if(evtFlags.dmgX2)dano*=2;if(evtFlags.dmgX3)dano*=3;
+  if(isGod()&&vencedor===1&&corrPenalty()>0)dano=Math.max(1,Math.round(dano*(1-corrPenalty()*.5)));
+  if(isOrdemFoe()&&vencedor===1)dano=Math.max(1,Math.round(dano*(1+san/160)));
+  if(heroIs('gladiador'))dano+=vencedor===1?3:(vencedor===2?1:0);
+  if(vencedor===1){
+    if(hasPacto('eco')&&st.streak>=1)dano+=4;
+    if(hasPacto('raio')&&cartaHumana.pw)dano+=3;
+    if(hasPacto('juiz')&&margem>=8)dano*=2;
+  }
+  if(vencedor===2&&hasPacto('ferro'))dano=Math.max(1,dano-2);
+  if(maldAtiva('meiodano')&&vencedor===1)dano=Math.max(1,Math.round(dano/2));
+  if(aposta)dano*=2;
+  if(!anulada&&rule&&rule.fixed)dano=Number(rule.fixed)||dano;
+  const vencedorPw=vencedor===1?p1:p2,perdedorPw=vencedor===1?p2:p1;
+  if(vencedor){
+    if(flags[vencedor].thorns)dano*=2;
+    if(temPoderIA(vencedorPw,'duplo'))dano=Math.round(dano*1.5);
+    if(temPoderIA(vencedorPw,'juiz'))dano=7;
+    const tsunami=temPoderIA(vencedorPw,'tsunami');
+    if(temPoderIA(vencedorPw,'apocalipse')&&margem>=10)dano*=3;
+    if(temPoderIA(perdedorPw,'blindado')&&!tsunami)dano=Math.max(1,Math.round(dano/2));
+    const perdedorFlags=flags[vencedor===1?2:1];
+    if(perdedorFlags.shield&&!tsunami)dano=0;
+    if(heroIs('sombra')&&vencedor===2)dano*=.7; // valor esperado da esquiva de 30%
+    if(evtFlags.extraDmg)dano+=evtFlags.extraDmg;
+    if(foe.pass.k==='armor'&&vencedor===1&&dano>1)dano--;
+  }
+  let hpHumano=Number(estadoSimulado.hp1)||0,hpIA=Number(estadoSimulado.hp2)||0;
+  const maxHumano=20,maxIA=Math.max(1,foeMaxHp());
+  let danoHumano=0,danoIA=0;
+  const hpDelta=(lado,delta)=>{if(lado===1)hpHumano+=delta;else hpIA+=delta};
+  const hpCura=(lado,valor)=>{if(lado===1)hpHumano=Math.min(maxHumano,hpHumano+valor);else hpIA=Math.min(maxIA,hpIA+valor)};
+  if(vencedor===1){hpIA-=dano;danoIA=dano}
+  else if(vencedor===2){hpHumano-=dano;danoHumano=dano;}
+  else if(rule&&rule.healTie&&!anulada){hpHumano=Math.min(maxHumano,hpHumano+rule.healTie);hpIA=Math.min(maxIA,hpIA+rule.healTie)}
+  else{hpHumano-=2;hpIA-=2;danoHumano=2;danoIA=2}
+  if(vencedor){
+    const ladoVencedor=vencedor,ladoPerdedor=vencedor===1?2:1;
+    const poderesVencedor=vencedor===1?p1:p2,poderesPerdedor=vencedor===1?p2:p1;
+    if(vencedor===2&&foe.pass.k==='drain')hpCura(2,2);
+    if(temPoderIA(poderesVencedor,'vampiro')&&dano)hpCura(ladoVencedor,Math.ceil(dano/2));
+    if(temPoderIA(poderesVencedor,'ladrao')){hpDelta(ladoPerdedor,-2);hpCura(ladoVencedor,2)}
+    if(temPoderIA(poderesPerdedor,'explosivo'))hpDelta(ladoVencedor,-3);
+    if(temPoderIA(poderesPerdedor,'curandeiro'))hpCura(ladoPerdedor,3);
+    if(temPoderIA(poderesVencedor,'praga')||temPoderIA(poderesPerdedor,'praga'))
+      hpDelta(temPoderIA(poderesVencedor,'praga')?ladoPerdedor:ladoVencedor,-2);
+    if(temPoderIA(poderesVencedor,'toxico'))hpDelta(ladoPerdedor,-3);
+    if(temPoderIA(poderesVencedor,'trovao'))hpDelta(ladoPerdedor,-2);
+    if(temPoderIA(poderesVencedor,'eco'))hpDelta(ladoPerdedor,-3);
+    if(temPoderIA(poderesPerdedor,'osmose'))hpCura(ladoPerdedor,4);
+    if(!anulada&&rule&&rule.rec)hpDelta(ladoVencedor,-2);
+    if(vencedor===1){
+      if(hasPacto('fome'))hpCura(1,2);
+      if(hasPacto('roubo'))hpDelta(2,-1);
+    }
+    if(vencedor===2&&heroIs('necro'))hpDelta(2,-2);
+  }
+  if(hpHumano<=0&&heroIs('fenix')&&!heroFlags.revived)hpHumano=10;
+  hpHumano=clamp(hpHumano,0,maxHumano);hpIA=clamp(hpIA,0,maxIA);
+  const danoRelativoHumano=(Number(st.hp1)-hpHumano)/maxHumano;
+  const danoRelativoIA=(Number(st.hp2)-hpIA)/maxIA;
+  let nota=(danoRelativoHumano-danoRelativoIA)*180+(vencedor===2?24:vencedor===1?-24:-8);
+  if(hpHumano<=0&&hpIA>0)nota+=350;
+  if(hpIA<=0&&hpHumano>0)nota-=350;
+  if(hpHumano<=0&&hpIA<=0)nota-=25;
+  const qualidade=Math.max(0,Number(cartaIA.v)||0)+([cartaIA.pw,cartaIA.pw2].filter(Boolean).length*2);
+  const urgencia=1-clamp(Number(st.hp2)/maxIA,0,1);
+  nota-=qualidade*(.72-urgencia*.52);              // guarda as melhores cartas se houver alternativa
+  if(foe.ai==='power'&&[cartaIA.pw,cartaIA.pw2].some(Boolean))nota+=4;
+  if(foe.ai==='low')nota-=Math.max(0,(Number(cartaIA.v)||0)-4)*.25;
+  if(foe.ai==='elem'&&cartaIA.el&&cartaHumana.el&&BEATS[cartaIA.el]===cartaHumana.el)nota+=6;
+  return{nota,vencedor,danoIA,danoHumano,hpHumano,hpIA,valorIA:b,valorHumano:a};
+}
+function preverAlvoIA(){
+  return comAleatoriedadeMediaIA(()=>{
+    if(isCoop()&&picked[1]&&picked[3]){
+      const A=picked[1],B=picked[3];let bonus=0;
+      if(A.el&&A.el===B.el)bonus+=5;if(A.pw&&B.pw)bonus+=4;
+      if(Math.abs(A.v-B.v)<=2)bonus+=3;if(A.r==='lendaria'&&B.r==='lendaria')bonus+=6;
+      if(A.ordem&&B.ordem)bonus+=6;
+      const pw=A.pw&&B.pw?(pv(A,1)>=pv(B,1)?A.pw:B.pw):(A.pw||B.pw);
+      return{v:A.v+B.v+bonus,n:'CARTA COMBINADA',el:A.el||B.el,pw,ordem:A.ordem||B.ordem};
+    }
+    if(heroIs('oraculo')&&hands[1].length>1){
+      return hands[1].reduce((melhor,c)=>pv(c,1)>pv(melhor,1)?c:melhor,hands[1][0]);
+    }
+    return picked[1];
+  });
+}
+function melhorCartaIA(pool,alvo){
+  if(!pool.length)return null;
+  return comAleatoriedadeMediaIA(()=>pool.map((c,i)=>({c,i,previsao:preverConfrontoIA(c,alvo)}))
+    .sort((a,b)=>b.previsao.nota-a.previsao.nota||a.previsao.valorIA-b.previsao.valorIA)[0]);
+}
+function simularItemIA(item,pool,alvo,notaBase){
+  const original={hp1:st.hp1,hp2:st.hp2,b1:buffs[1],b2:buffs[2],f1:flags[1],f2:flags[2],nullified,rule};
+  const restaurar=()=>{
+    st.hp1=original.hp1;st.hp2=original.hp2;buffs[1]=original.b1;buffs[2]=original.b2;
+    flags[1]=original.f1;flags[2]=original.f2;nullified=original.nullified;rule=original.rule;
+  };
+  flags[1]={...flags[1]};flags[2]={...flags[2]};
+  switch(item.t){
+    case'buff':buffs[2]+=item.v;break;
+    case'debuff':buffs[1]-=item.v;break;
+    case'nullify':nullified=true;break;
+    case'heal':st.hp2=Math.min(foeMaxHp(),st.hp2+item.v);break;
+    case'steal':st.hp1-=item.v;break;
+    case'thorns':flags[2].thorns=1;break;
+    case'shield':flags[2].shield=1;break;
+    case'antipower':flags[2].antipower=1;break;
+    case'element':flags[2].element=1;break;
+    case'copy':flags[2].copy=1;break;
+    case'pact':st.hp2-=3;buffs[2]+=10;break;
+    case'bomb':st.hp1-=item.v;st.hp2-=item.v;break;
+    case'draw':restaurar();return pool.length<5&&notaBase<20?10:-5;
+    case'reroll':restaurar();return notaBase< -55?9:-8;
+    case'mult':restaurar();return-100; // o multiplicador pertence ao jogador, não ao bot
+    case'newrule':{
+      let total=0;const oldRule=rule,oldNull=nullified;
+      RULES.forEach(r=>{rule=r;nullified=false;const pickIA=melhorCartaIA(pool,alvo);total+=pickIA?pickIA.previsao.nota:-200});
+      rule=oldRule;nullified=oldNull;restaurar();
+      return total/Math.max(1,RULES.length)-notaBase;
+    }
+    default:restaurar();return-100;
+  }
+  const afterPick=melhorCartaIA(pool,alvo),after=afterPick?afterPick.previsao.nota:-200;
+  restaurar();return after-notaBase;
+}
+function aplicarItemIA(indice){
+  const it=inv[2][indice];if(!it||it.t==='mult')return false;
+  const devilHpBeforeItem=Number(st.hp1)||0;
+  S.item();
+  switch(it.t){
+    case'buff':buffs[2]+=it.v;break;
+    case'debuff':buffs[1]-=it.v;break;
+    case'nullify':nullified=true;$('chaos').style.filter='grayscale(1) brightness(.6)';break;
+    case'reroll':hands[2]=[mkCard(),mkCard(),mkCard()];break;
+    case'heal':st.hp2=Math.min(foeMaxHp(),st.hp2+it.v);floatTxt($('h2'),'+'+it.v,'#3ddc97');break;
+    case'thorns':flags[2].thorns=1;break;
+    case'shield':flags[2].shield=1;break;
+    case'steal':st.hp1-=it.v;floatTxt($('h1'),'-'+it.v,'#fe5f55');break;
+    case'newrule':newRule();break;
+    case'draw':hands[2].push(mkCard(),mkCard());break;
+    case'antipower':flags[2].antipower=1;break;
+    case'element':flags[2].element=1;break;
+    case'pact':st.hp2-=3;buffs[2]+=10;floatTxt($('h2'),'-3','#fe5f55');break;
+    case'copy':flags[2].copy=1;break;
+    case'bomb':st.hp1-=it.v;st.hp2-=it.v;shake();floatTxt($('h1'),'-'+it.v,'#f9c74f');floatTxt($('h2'),'-'+it.v,'#f9c74f');break;
+    default:return false;
+  }
+  inv[2].splice(indice,1);
+  if(isDevilMode()&&st.hp1<devilHpBeforeItem)triggerDevilRoulette(devilHpBeforeItem-st.hp1,false);
+  log(`✨ ${foe.ic} ${foe.n} usou <b>${it.n}</b> — ${it.e}`);
+  upd();
+  return true;
+}
+function perfilIA(){
+  if(isDevilMode())return .999;
+  const elite=['god','order','chaos'].includes(foe.ai)||foe.pass.k==='analyze';
+  return clamp(.84+(chaosLevel()-1)/240+(elite ? .13 : 0),.84,.99);
+}
 function aiPlay(){
-      // IA usa itens
-      let guard=0;
-      while(inv[2].length&&Math.random()<.5&&guard++<3){const t=turn;turn=2;useItem(Math.floor(Math.random()*inv[2].length));turn=t;busy=true}
-      // IA escolhe a melhor carta
-      // ---- IA conforme o estilo do oponente ----
-      const pool=hands[2].filter(c=>!c.puz);const P=pool.length?pool:hands[2];
-      const sc=c=>c.v+(c.pw?2:0);
-      switch(foe.ai){
-        case'random':picked[2]=pick(P);break;
-        case'low':   picked[2]=P.reduce((a,b)=>sc(b)<sc(a)?b:a);break;
-        case'power': picked[2]=P.reduce((a,b)=>((b.pw?9:0)+b.v>(a.pw?9:0)+a.v?b:a));break;
-        case'elem':  picked[2]=P.reduce((a,b)=>{
-                       const bo=x=>BEATS[x.el]===(picked[1]?.el)?8:0;
-                       return sc(b)+bo(b)>sc(a)+bo(a)?b:a});break;
-        case'god':   picked[2]=hands[2][godChoose()]||P[0];break;
-        case'order': {  // sempre a mais eficiente, sem desperdício
-                      const alvo=picked[1]?pv(picked[1],1):9;
-                      const v=P.filter(c=>pv(c,2)>alvo).sort((a,b)=>pv(a,2)-pv(b,2));
-                      picked[2]=v.length?v[0]:P.reduce((a,b)=>pv(b,2)>pv(a,2)?b:a);break}
-        case'chaos': { // imprevisível de propósito: às vezes a pior carta
-                      picked[2]=Math.random()<.25?pick(P):P.reduce((a,b)=>pv(b,2)>pv(a,2)?b:a);break}
-        default:     picked[2]=P.reduce((a,b)=>sc(b)>sc(a)?b:a);
-      }
-      // ---- INSTINTO DO CAOS: quanto mais fundo o nível, mais afiada fica QUALQUER IA ----
-      {
-        const lvA=chaosLevel(), esperteza=clamp((lvA-4)/34,0,.95);
-        if(picked[1]&&Math.random()<esperteza){
-          const alvo=pv(picked[1],1);
-          const vencem=P.filter(c=>pv(c,2)>alvo);
-          if(vencem.length){
-            // gasta a MENOR carta que ainda vence: guarda as fortes pro futuro
-            const eco=vencem.reduce((a,b)=>pv(b,2)<pv(a,2)?b:a);
-            picked[2]=eco;
-          }else{
-            // não dá pra vencer: descarta a mais fraca em vez de desperdiçar a boa
-            picked[2]=P.reduce((a,b)=>pv(b,2)<pv(a,2)?b:a);
-          }
-        }
-      }
-      // ANÁLISE do X-9: enxerga sua carta e escolhe a menor que ainda vence (eficiência fria)
-      if(foe.pass.k==='analyze'&&picked[1]){
-        const alvo=picked[1].v;
-        const vence=P.filter(c=>c.v>alvo);
-        if(vence.length){picked[2]=vence.reduce((a,b)=>b.v<a.v?b:a);
-          log('🤖 ANÁLISE: X-9 calculou a carta mínima para vencer')}
-      }
-      // ORÁCULO: VOCÊ joga por último — troca sua carta depois de ver a dele
-      if(heroIs('oraculo')&&picked[1]&&hands[1].length>1){
-        const melhor=hands[1].reduce((a,b)=>pv(b,1)>pv(a,1)?b:a);
-        if(pv(melhor,1)>pv(picked[1],1)&&pv(picked[1],1)<=pv(picked[2],2)){
-          log(`👁 <b>ONISCIÊNCIA</b>: você trocou para <b>${melhor.n}</b> depois de ver a dele.`);
-          picked[1]=melhor;
-          $('s1').innerHTML='';$('s1').appendChild(cardEl(picked[1],'p1 flip'));
-          S.legend();ring($('s1'),'#c44dff');
-        }
-      }
-      // DIVINDADE: ele vê a sua carta e pode trocar a dele por uma divina
-      if(foe.pass.k==='god'&&picked[1]){
-        const alvo=pv(picked[1],1);
-        if(pv(picked[2],2)<=alvo&&Math.random()<.55+corrPenalty()*.35){
-          const g=mkGodCard();
-          if(g.v>pv(picked[2],2)){picked[2]=g;
-            log('🕳 <b>o Deus do Caos trocou a própria carta</b> depois de ver a sua.')}
-        }
-        setTimeout(godThinks,200);
-      }
-      // REFLEXO: copia sua carta se for melhor
-      if(foe.pass.k==='mirror'&&picked[1]&&picked[1].v>picked[2].v){
-        picked[2]={...picked[2],v:picked[1].v,n:'REFLEXO DE '+picked[1].n.toUpperCase().slice(0,12)};
-        log('🪞 o Reflexo copiou o valor da sua carta!')}
-      // REALEZA acumulada
-      if(foe.pass.k==='king'&&kingBonus)picked[2]={...picked[2],v:clamp(picked[2].v+kingBonus,1,40)};
-      taunt();
-      if(picked[2].puz){const w=Math.random()<.5;picked[2]={...picked[2],v:clamp(picked[2].v+(w?10:-3),1,30)};
-        log(`🧩 o Gremlin ${w?'venceu':'falhou'} o próprio puzzle`)}
-      $('s2').innerHTML='';$('s2').appendChild(cardEl(picked[2],'p2 flip'));S.flip();
-      setTimeout(()=>{escolherTruque().then(resolve)},600);
+  const alvo=preverAlvoIA();
+  let pool=hands[2].filter(c=>!c.puz);if(!pool.length)pool=hands[2].slice();
+  if(!pool.length){pool.push(mkCard());hands[2].push(pool[0])}
+  let melhor=melhorCartaIA(pool,alvo);
+  const habilidade=perfilIA();
+  const limite=foe.pass.k==='devil'?3:(foe.pass.k==='analyze'||['god','order'].includes(foe.ai)||habilidade>=.9?2:1);
+  let usados=0;
+  while(inv[2].length&&usados<limite){
+    let escolhido=-1,ganho=2.5;
+    inv[2].forEach((it,i)=>{
+      const delta=simularItemIA(it,pool,alvo,melhor.previsao.nota);
+      if(delta>ganho){ganho=delta;escolhido=i}
+    });
+    if(escolhido<0)break;
+    if(!aplicarItemIA(escolhido))break;
+    usados++;
+    if(st.hp1<=0||st.hp2<=0){
+      const inimigoAntes=foe.id,abatesAntes=survKills;finish();
+      if(foe.id!==inimigoAntes||survKills!==abatesAntes)return;
+      if(!over&&st.hp1>0&&st.hp2<=0)finish();
+      if(over||st.hp1<=0||st.hp2<=0)return;
+      busy=true;$('next').style.display='none';
+    }
+    pool=hands[2].filter(c=>!c.puz);if(!pool.length)pool=hands[2].slice();
+    melhor=melhorCartaIA(pool,alvo);
+  }
+  let fallback;
+  switch(foe.ai){
+    case'random':fallback=pick(pool);break;
+    case'low':fallback=pool.reduce((x,y)=>valoresIA(y,alvo)<valoresIA(x,alvo)?y:x);break;
+    case'power':fallback=pool.reduce((x,y)=>((y.pw?9:0)+(y.pw2?9:0)+(Number(y.v)||0)>(x.pw?9:0)+(x.pw2?9:0)+(Number(x.v)||0)?y:x));break;
+    case'elem':fallback=pool.reduce((x,y)=>{
+      const bonus=c=>alvo&&BEATS[c.el]===alvo.el?8:0;
+      return valoresIA(y,alvo)+bonus(y)>valoresIA(x,alvo)+bonus(x)?y:x});break;
+    case'god':fallback=hands[2][godChoose()]||pool[0];break;
+    case'order':{
+      const possiveis=pool.filter(c=>comAleatoriedadeMediaIA(()=>preverConfrontoIA(c,alvo).vencedor===2));
+      fallback=possiveis.length?possiveis.reduce((x,y)=>valoresIA(y,alvo)<valoresIA(x,alvo)?y:x):pool.reduce((x,y)=>valoresIA(y,alvo)>valoresIA(x,alvo)?y:x);break;}
+    case'chaos':fallback=Math.random()<.18?pick(pool):melhor.c;break;
+    case'devil':fallback=melhor.c;break;
+    default:fallback=pool.reduce((x,y)=>valoresIA(y,alvo)>valoresIA(x,alvo)?y:x);
+  }
+  const chanceEstrategia=foe.ai==='devil'?1:(foe.ai==='random'?habilidade-.08:foe.ai==='chaos'?habilidade-.04:habilidade);
+  const escalar=melhor&&(Math.random()<chanceEstrategia)?melhor.c:fallback;
+  picked[2]=escalar||pool[0];
+  // O X-9 lê a carta do rival e guarda energia escolhendo só o bastante para vencer.
+  if(foe.pass.k==='analyze'&&melhor){picked[2]=melhor.c;log('🤖 ANÁLISE: X-9 comparou a regra, os poderes e a vida antes de escolher.')}
+  // O Deus do Caos ainda usa sua memória, mas não deixa passar uma jogada tática melhor.
+  if(foe.pass.k==='god'&&melhor&&comAleatoriedadeMediaIA(()=>preverConfrontoIA(melhor.c,alvo).nota)>comAleatoriedadeMediaIA(()=>preverConfrontoIA(picked[2],alvo).nota))
+    picked[2]=melhor.c;
+  // ORÁCULO: o jogador pode trocar sua carta depois de ver a resposta.
+  if(heroIs('oraculo')&&picked[1]&&hands[1].length>1){
+    const melhorHumano=hands[1].reduce((x,y)=>pv(y,1)>pv(x,1)?y:x);
+    if(pv(melhorHumano,1)>pv(picked[1],1)&&pv(picked[1],1)<=pv(picked[2],2)){
+      log(`👁 <b>ONISCIÊNCIA</b>: você trocou para <b>${melhorHumano.n}</b> depois de ver a dele.`);
+      picked[1]=melhorHumano;$('s1').innerHTML='';$('s1').appendChild(cardEl(picked[1],'p1 flip'));
+      S.legend();ring($('s1'),'#c44dff');
+    }
+  }
+  // DIVINDADE: considera a carta combinada da dupla e só troca se a previsão melhorar.
+  if(foe.pass.k==='god'&&alvo){
+    const anterior=comAleatoriedadeMediaIA(()=>preverConfrontoIA(picked[2],alvo));
+    if(anterior.vencedor!==2&&Math.random()<.78+corrPenalty()*.2){
+      const divina=mkGodCard();
+      const previsaoDivina=comAleatoriedadeMediaIA(()=>preverConfrontoIA(divina,alvo));
+      if(previsaoDivina.nota>anterior.nota){picked[2]=divina;
+        log('🕳 <b>o Deus do Caos trocou a própria carta</b> depois de prever o confronto.')}
+    }
+    setTimeout(godThinks,200);
+  }
+  // REFLEXO: também enxerga o total combinado dos dois aliados.
+  if(foe.pass.k==='mirror'&&alvo&&(Number(alvo.v)||0)>picked[2].v){
+    picked[2]={...picked[2],v:clamp(Number(alvo.v)||0,1,40),n:'REFLEXO DE '+alvo.n.toUpperCase().slice(0,12)};
+    log('🪞 o Reflexo copiou o valor da carta da dupla!');
+  }
+  if(foe.pass.k==='king'&&kingBonus)picked[2]={...picked[2],v:clamp(picked[2].v+kingBonus,1,40)};
+  if(foe.pass.k==='burn'&&picked[2].el==='fogo'){
+    picked[2]={...picked[2],v:clamp(picked[2].v+3,1,40)};
+    log('🔥 BRASA: o Dragão ganhou +3 por usar uma carta de fogo.');
+  }
+  if(foe.pass.k==='devil'&&!picked[2].devilBoost){
+    const boost=devilCardBoost();
+    picked[2]={...picked[2],v:clamp((Number(picked[2].v)||0)+boost,1,40),devilBoost:boost};
+    log(`👹 <b>MARCA DO DIABO</b>: a carta dele ganha <b>+${boost}</b> antes de cair na mesa.`);
+  }
+  taunt();
+  if(picked[2].puz){const venceu=Math.random()<.65;picked[2]={...picked[2],v:clamp(picked[2].v+(venceu?10:-3),1,30)};
+    log(`🧩 o ${foe.n} ${venceu?'venceu':'falhou'} o próprio puzzle`)}
+  $('s2').innerHTML='';$('s2').appendChild(cardEl(picked[2],'p2 flip'));S.flip();
+  setTimeout(()=>{escolherTruque().then(resolve)},600);
 }
 
 
@@ -5463,6 +6252,7 @@ function resolve(){
   }
 }
 function resolveInner(){
+  const devilHpBefore=Number(st.hp1)||0;
   if(nullifyRule){nullified=true;nullifyRule=false;
     log('📝 <b>FURO DE ROTEIRO</b>: a regra da rodada foi cortada na edição.')}
   $('vs').classList.remove('clash');void $('vs').offsetWidth;$('vs').classList.add('clash');S.hit();shake();
@@ -5599,7 +6389,7 @@ function resolveInner(){
   // ANULAÇÃO do Vazio: os poderes da carta podem falhar
   if(vsFoe()&&foe.pass.k==='void'&&w1s.length&&Math.random()<.35){
     w1s=[];w1=null;w1b=null;
-    log('🕳 O VAZIO anulou os poderes da sua carta!');flash('#3d1c5544')}
+    log(foe.id==='cartomante'?'🃏 <b>A CARTOMANTE VIROU SUA CARTA</b>: o poder desapareceu.':'🕳 O VAZIO anulou os poderes da sua carta!');flash('#3d1c5544')}
   // EVENTO: segunda regra em vigor
   if(evtFlags.rule2&&!nullified){
     const r2=evtFlags.rule2.f(a,b,st);a=r2[0];b=r2[1];
@@ -5688,7 +6478,9 @@ function resolveInner(){
     if(temPoder(wwP,'praga')||temPoder(wlP,'praga')){const src=temPoder(wwP,'praga')?winner:lo,tg=src===1?2:1;st['hp'+tg]-=2;log('🦠 PRAGA drenou 2')}
     if(temPoder(wwP,'toxico')){st['hp'+lo]-=3;floatTxt($('h'+lo),'-3','#9dff4d');log('☠ TÓXICO envenenou por mais 3')}
     if(temPoder(wwP,'trovao')){st['hp'+lo]-=2;floatTxt($('h'+lo),'-2','#ffe066');log('⚡ TROVÃO causou 2 de dano direto')}
-    if(temPoder(wwP,'eco')){setTimeout(()=>{st['hp'+lo]-=3;floatTxt($('h'+lo),'-3','#bfe4ff');
+    if(temPoder(wwP,'eco')){setTimeout(()=>{const hpBeforeEcho=Number(st.hp1)||0;st['hp'+lo]-=3;
+      floatTxt($('h'+lo),'-3','#bfe4ff');
+      if(isDevilMode()&&lo===1)triggerDevilRoulette(Math.max(1,hpBeforeEcho-(Number(st.hp1)||0)),winner===2);
       log('🔊 ECO atacou de novo por 3');upd();if(st.hp1<=0||st.hp2<=0)finish()},700)}
     if(temPoder(wlP,'osmose')){st['hp'+lo]=Math.min(20,st['hp'+lo]+4);floatTxt($('h'+lo),'+4','#3ddc97');log('💧 OSMOSE drenou 4 de volta')}
     if(!nullified&&rule.rec){st['hp'+winner]-=2;floatTxt($('h'+winner),'-2','#f9c74f');log('🩸 pacifismo falso: o vencedor também toma 2')}
@@ -5721,6 +6513,13 @@ function resolveInner(){
     if(!nullified&&rule.healTie){st.hp1=Math.min(20,st.hp1+rule.healTie);st.hp2=Math.min(20,st.hp2+rule.healTie);log('💚 empate curou os dois em '+rule.healTie)}
     else{st.hp1-=2;st.hp2-=2;floatTxt($('h1'),'-2','#f9c74f');floatTxt($('h2'),'-2','#f9c74f');log('🤝 empate! o caos cobra 2 de cada')}
     burst(c1,'#f9c74f',12);burst(c2,'#f9c74f',12);S.lose();
+  }
+  if(isDevilMode()){
+    const received=Math.max(0,devilHpBefore-(Number(st.hp1)||0));
+    if(winner===2||received>0){
+      const rouletteDamage=Math.max(received,winner===2?Math.max(1,Number(dmg)||1):0);
+      triggerDevilRoulette(rouletteDamage,winner===2);
+    }
   }
   $('chaos').style.filter='';
   st.hp1=Math.min(20,st.hp1);st.hp2=Math.min(foeMaxHp(),st.hp2);
@@ -6473,7 +7272,7 @@ const SURVKEY='caosreal.surv.v1';
 function survRecord(){try{return +localStorage.getItem(SURVKEY)||0}catch(e){return 0}}
 function survSave(n){try{if(n>survRecord())localStorage.setItem(SURVKEY,n)}catch(e){}}
 function proximoInimigo(){
-  const disp=FOES.filter(f=>f.id!=='ocaos');
+  const disp=FOES.filter(f=>f.id!=='ocaos'&&f.id!=='diabo');
   const f=disp[survKills%disp.length];
   foe={...f, hp:Math.round(f.hp*(1+survKills*.12))};
   st.hp2=foeMaxHp();
@@ -6510,13 +7309,13 @@ function finish(){
   const d1=st.hp1<=0,d2=st.hp2<=0;let title,msg;
   if(d1&&d2){title='DUPLO KO';msg='os dois caíram. o caos é o único vencedor.';S.doom()}
   else if(d1){
-    title=isCoop()?'A DUPLA CAIU':(mode===1?'VOCÊ PERDEU':'JOG. 2 VENCE');
-    msg=isCoop()?`${foe.n} derrubou os dois. juntos.`:(mode===1?'o Gremlin dança sobre suas cinzas.':'domínio absoluto do caos.');
+    title=isCoop()?'A DUPLA CAIU':(isDevilMode()?'A MESA COBROU':(mode===1?'VOCÊ PERDEU':'JOG. 2 VENCE'));
+    msg=isCoop()?`${foe.n} derrubou os dois. juntos.`:(isDevilMode()?'o tambor cantou. o Diabo recolheu as cartas — e a sua alma.':(mode===1?`${foe.n} dança sobre suas cinzas.`:'domínio absoluto do caos.'));
     (mode===2)?S.fanfare():S.doom();
   }
   else{
-    title=isCoop()?'🤝 A DUPLA VENCEU!':(mode===1?'VITÓRIA!':'JOG. 1 VENCE');
-    msg=isCoop()?`dois contra um, e ${foe.n} caiu com o dobro de vida.`:'você domou o caos… por enquanto.';
+    title=isCoop()?'🤝 A DUPLA VENCEU!':(isDevilMode()?'TRUCO ACEITO':(mode===1?'VITÓRIA!':'JOG. 1 VENCE'));
+    msg=isCoop()?`dois contra um, e ${foe.n} caiu com o dobro de vida.`:(isDevilMode()?'você ganhou a mão. o Diabo finge que não estava contando as cartas.':'você domou o caos… por enquanto.');
     S.fanfare();
   }
   // ---- CONQUISTAS DE FIM DE PARTIDA ----
@@ -6606,8 +7405,14 @@ function startNewRun(){
   {const fb=$('fundirBtn');if(fb){fb.style.display='inline-block';fb.classList.remove('on');fb.textContent='🧬 FUNDIR (1)'}
    const ab=$('acusarBtn');if(ab)ab.style.display='none';}
   document.body.classList.toggle('godmode',mode===1&&foe&&foe.id==='deus');
+  document.body.classList.toggle('devilmode',mode!==2&&foe&&foe.id==='diabo');
+  devilTauntIndex=0;resetDevilGun();
   updCorr();updHeroBox();
   document.body.classList.remove('drunk');updSan();resetChaosClock();
+  if(isDevilMode()){
+    log('♣ <b>TRUCO DE ALMAS</b>: as cartas mostram o que você merece ouvir; o Diabo recebe bônus de força que cresce a cada quatro mãos.');
+    log('🔫 o tambor começa com uma bala. o dano acumula instabilidade; sobreviva ao clique — se tiver sorte.');
+  }
   // ---- habilidades de início de partida ----
   if(heroIs('bardo')){st.mult=2;popEl('multN')}
   if(heroIs('alquimista')){inv[1].push(mkItem(),mkItem());log('⚗ ALQUIMISTA começou com 2 itens.')}
@@ -6681,6 +7486,7 @@ document.addEventListener('keydown',e=>{
 });
 $('heroBtn').onclick=()=>{if(window.__onlineSession)return;if(busy){log('⛔ termine a rodada antes de trocar de personagem.');return}S.click();heroScreen(false)};
 $('heroBox').onclick=()=>{if(window.__onlineSession||busy)return;S.click();heroScreen(false)};
+$('heroBox').onkeydown=e=>{if((e.key==='Enter'||e.key===' ')&&!window.__onlineSession&&!busy){e.preventDefault();S.click();heroScreen(false)}};
 let lite=false;
 $('liteBtn').onclick=()=>{
   lite=!lite;document.body.classList.toggle('lite',lite);
@@ -6694,6 +7500,12 @@ $('foeBtn').onclick=()=>{
   if(busy){log('⛔ termine a rodada antes de trocar de oponente.');return}
   S.click();chooseFoe(false);
 };
+$('devilFoeBtn').onclick=()=>{
+  if(window.__onlineSession){log('🌐 o oponente fica bloqueado durante a partida online.');return}
+  if(busy){log('⛔ termine a rodada antes de trocar de oponente.');return}
+  S.click();chooseFoe(false);
+};
+$('devilModeBtn').onclick=()=>{if($('modeBtn'))$('modeBtn').click()};
 $('modeBtn').onclick=()=>{
   if(window.__onlineSession){log('🌐 os modos locais ficam bloqueados durante a partida online.');return}
   if(busy){log('⛔ aguarde a resolução da rodada antes de trocar de modo.');return}
@@ -6715,7 +7527,7 @@ log('✨ cada elemento tem <b>aura e partículas próprias</b> na carta — pass
 log('🎲 <b>DADO AMALDIÇOADO</b> (ao lado dos itens): 1 rolagem por rodada, 22 destinos. Pode te dar +6 em tudo, virar sua mão lendária, te matar na hora… ou abrir um <b>Julgamento</b>.');
 log('🌀 <b>40 EVENTOS DO CAOS</b> — e agora <b>o Caos FALA</b> a cada um deles. Alguns REFORMAM o seu HUD: espelhado, de cabeça pra baixo, giratório, fantasma, bêbado, negativo…');
 log('🧩 <b>9 MINIGAMES</b>: cobrinha, campo minado, memória, reflexo, fechadura + <b>Simon, labirinto, aritmética e balança</b>.');
-log('⚔ <b>12 OPONENTES</b>, cada um com vida, IA e passiva própria. Troque quando quiser pelo HUD.');
+log(`⚔ <b>${FOES.filter(f=>f.id!=='ocaos').length} OPONENTES</b>, cada um com vida, IA e passiva própria. Troque quando quiser pelo HUD.`);
 log('📈 <b>55 NÍVEIS DE CAOS, UM POR JOGADA</b>: cada rodada resolvida sobe exatamente 1 nível. São <b>55 jogadas até o FIM</b>. Sem relógio — o caos só avança quando VOCÊ avança.');
 log('🙂 <b>INSANIDADE</b> em TODOS os modos: um sorriso cresce sobre a tela, as mensagens se multiplicam, as cartas mentem o valor e os inimigos percebem que você está enlouquecendo.');
 $('barSign').onclick=()=>{if(!$('barSign').classList.contains('open'))return;
@@ -6798,6 +7610,7 @@ renderPactos();renderMald();
       survival=!!b.survival;survKills=0;mode=Number.isFinite(b.mode)?b.mode:1;
       document.body.classList.toggle('coop',mode===3);
       document.body.classList.toggle('godmode',mode===1&&foe.id==='deus');
+      document.body.classList.toggle('devilmode',mode!==2&&foe.id==='diabo');
       const modeButton=$('modeBtn');
       if(modeButton)modeButton.textContent=mode===1?'👥 MODO: 1 JOGADOR':(mode===2?'👥 MODO: 2 JOGADORES':'🤝 MODO: 2 vs 1 (COOP)');
       try{updHeroBox();upd()}catch(e){}
@@ -6819,6 +7632,7 @@ renderPactos();renderMald();
       try{
         if(!s||!s.st||!s.hands)return false;
         st={...st,...s.st};turn=(Number(s.turn)===2?2:1);mode=2;
+        document.body.classList.remove('devilmode');
         hands=s.hands;inv=s.inv||{1:[],2:[],3:[]};picked=s.picked||{1:null,2:null,3:null};
         buffs=s.buffs||{1:0,2:0,3:0};flags=s.flags||{1:{},2:{},3:{}};
         const hydrateRule=r=>r?(RULES.find(x=>x.n===r.n)||r):null;
