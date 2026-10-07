@@ -552,6 +552,57 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
 .achToast .an{font:900 14px system-ui;color:#fff;letter-spacing:.8px}
 .achToast .ad{font:600 10px system-ui;color:#bfe4ff;margin:3px 0 6px}
 .achToast .ap{font:900 11px system-ui;color:#3ddc97}
+.achToast.trophyToast{left:16px;right:auto;border-color:#a05fd3;background:linear-gradient(160deg,#190d28,#09070e);
+  box-shadow:0 0 28px rgba(160,95,211,.42)}
+.achOverlay{z-index:120;justify-content:flex-start;gap:8px;overflow-y:auto;overscroll-behavior:contain;
+  padding:max(18px,env(safe-area-inset-top)) 16px max(20px,env(safe-area-inset-bottom));}
+.achOverlay .achTitle{margin:clamp(8px,3vh,24px) 0 0;font-size:clamp(25px,5vw,42px)}
+.achSummary{margin:0 0 3px;color:#c8d6e2;font-size:12px;line-height:1.5}
+.achNav{width:min(100%,850px);display:flex;justify-content:center;align-items:center;gap:9px;flex-wrap:wrap}
+.achNavBtn{min-height:42px;padding:9px 15px;border:1.5px solid #f9c74f;border-radius:10px;
+  background:linear-gradient(180deg,#4a380c,#201805);color:#ffe99b;font:900 11px system-ui;letter-spacing:1.2px;
+  cursor:pointer;box-shadow:0 3px 0 #110d03;transition:transform .14s,filter .14s}
+.achNavBtn:hover{transform:translateY(-2px);filter:brightness(1.2)}
+.achNavBtn.close{border-color:#57c1ff;background:linear-gradient(180deg,#173044,#0b1922);color:#c9edff}
+.achList{width:min(100%,850px);max-height:56vh;overflow:auto;overscroll-behavior:contain;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(154px,1fr));align-content:start;gap:8px;padding:3px}
+.achCard{min-height:94px;padding:9px 10px;border:1.5px solid #2a3644;border-radius:10px;
+  background:rgba(10,16,24,.78);text-align:left;transition:transform .14s,border-color .14s,filter .14s}
+.achCard.unlocked{border-color:#f9c74f;background:linear-gradient(145deg,rgba(61,46,8,.86),rgba(20,17,10,.86));box-shadow:inset 0 0 18px #f9c74f12}
+.achCard.locked{opacity:.65}
+.achCard:hover{transform:translateY(-2px);filter:brightness(1.12)}
+.achCardTitle{display:block;color:#9db2c2;font:900 10px/1.35 system-ui;letter-spacing:.7px}
+.achCard.unlocked .achCardTitle{color:#ffe084}
+.achCardDesc{margin:4px 0 6px;color:#bfe4ff;font:600 9.5px/1.4 system-ui}
+.achCardPts{color:#3ddc97;font:900 9px system-ui}
+.trophyRoom{background:radial-gradient(ellipse at 50% 0%,#382651 0%,#10131d 58%,#07090e 100%)}
+.trophyRoom .achTitle{color:#f4ddff}
+.trophyContent{width:min(100%,900px);max-height:57vh;overflow:auto;overscroll-behavior:contain;padding:3px 7px 12px}
+.trophyShelf+.trophyShelf{margin-top:17px}
+.trophyShelfTitle{margin:5px 0 9px;text-align:left;color:#f9c74f;font:900 11px system-ui;letter-spacing:1.6px}
+.trophyGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(142px,1fr));gap:8px}
+.trophyCard{min-height:118px;padding:10px 8px;border:1px solid #3a3646;border-radius:11px;
+  background:linear-gradient(150deg,#14151f,#0c0c12);text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.trophyCard.earned{border-color:#d4b1ff;background:linear-gradient(150deg,#312143,#17111f);box-shadow:inset 0 0 22px #a05fd322,0 0 12px #a05fd322}
+.trophyCard.legendary.earned{border-color:#f9c74f;background:linear-gradient(150deg,#47380f,#1b1508);box-shadow:inset 0 0 24px #f9c74f22,0 0 14px #f9c74f33}
+.trophyCard.locked{opacity:.48;filter:grayscale(.65)}
+.trophyIcon{font-size:27px;line-height:1.1;filter:drop-shadow(0 2px 5px #0009)}
+.trophyName{color:#f3e7ff;font:900 9.5px/1.3 system-ui;letter-spacing:.6px}
+.trophyCard.legendary .trophyName{color:#ffe08a}
+.trophyDetail{color:#b8c6d2;font:600 8.5px/1.35 system-ui}
+.trophyEmpty{padding:18px;border:1px dashed #77638f;border-radius:11px;color:#d8c5eb;font-size:12px;line-height:1.6}
+@media(max-width:640px){
+  .achOverlay{gap:6px;padding:12px 8px max(12px,env(safe-area-inset-bottom))}
+  .achOverlay .achTitle{margin-top:8px}
+  .achList,.trophyContent{width:100%;max-height:55vh}
+  .achList{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .achCard{min-height:90px;padding:8px 7px}
+  .trophyGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .trophyCard{min-height:108px;padding:8px 5px}
+  .achNav{gap:7px}
+  .achNavBtn{flex:1;min-height:46px;padding:8px 10px;font-size:10px}
+  .achToast.trophyToast{left:12px;right:auto;bottom:12px;width:min(250px,calc(100vw - 24px))}
+}
 /* ===== DOSSIÊ / NARRATIVA ===== */
 .dossie{max-width:560px;margin:14px auto;text-align:left;padding:14px 16px;border-radius:11px;
   background:rgba(10,0,16,.75);border:1.5px solid #c44dff}
@@ -1214,6 +1265,94 @@ body.devilmode .card:not(.item) .devilPassive span{color:#ffd3ad;}
   body.devilmode .devilTableTitle{font-size:8px;letter-spacing:1px;}
   body.devilmode .devilTaunt{top:12vh!important;font-size:12px;}
 }
+/* ---------- IDENTIDADE VISUAL POR OPONENTE ---------- */
+body.foeTheme{background:radial-gradient(ellipse at 50% -10%,var(--foe-wash),#16222c 58%,#0c1319 100%)}
+body.foeTheme #shakeWrap{background:radial-gradient(ellipse at 50% 0%,var(--foe-panel),transparent 62%);}
+body.foeTheme .hud{background:linear-gradient(145deg,var(--foe-panel-strong),rgba(17,27,37,.96));
+  border:1px solid var(--foe-line);box-shadow:0 6px 0 #0e161d,0 0 26px var(--foe-glow),0 12px 24px #0008;}
+body.foeTheme .box{background:linear-gradient(145deg,var(--foe-panel-strong),var(--panel));border:1px solid var(--foe-line);}
+body.foeTheme .logo{background:linear-gradient(180deg,#fff,var(--foe-light))!important;
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+body.foeTheme .mini{color:var(--foe-light);}
+body.foeTheme .round{background:linear-gradient(135deg,var(--foe-accent),var(--foe-deep));
+  box-shadow:0 4px 0 var(--foe-deep),0 0 15px var(--foe-glow);}
+body.foeTheme .faceFrame{border-color:var(--foe-line);box-shadow:inset 0 0 18px #000,0 0 14px var(--foe-glow);}
+body.foeTheme .chaos{border:1px solid var(--foe-line);
+  background:linear-gradient(135deg,var(--foe-mid),var(--foe-deep));
+  box-shadow:0 5px 0 var(--foe-deep),0 10px 20px #0007,0 0 20px var(--foe-glow);}
+body.foeTheme .evt{border-color:var(--foe-line);box-shadow:0 0 16px var(--foe-glow);}
+body.foeTheme .arena{border:1px solid var(--foe-line);
+  background:linear-gradient(145deg,var(--foe-panel),rgba(9,17,24,.88));
+  box-shadow:inset 0 3px 14px #000a,0 0 22px var(--foe-glow);}
+body.foeTheme .handzone{border:1px solid var(--foe-line);
+  background:linear-gradient(160deg,var(--foe-panel),rgba(13,22,31,.95));}
+body.foeTheme .handlbl{color:var(--foe-light);text-shadow:0 0 12px var(--foe-glow);}
+body.foeTheme .log{border:1px solid var(--foe-line);box-shadow:inset 0 3px 10px #000,0 0 14px var(--foe-glow);}
+body.foeTheme .hudbtn,body.foeTheme .actBtn,body.foeTheme .big{border-color:var(--foe-line);}
+body.foeTheme .hudbtn:not(#achBtn){background:linear-gradient(180deg,var(--foe-mid),var(--foe-deep))!important;
+  color:var(--foe-light)!important;box-shadow:0 3px 0 var(--foe-deep),0 0 12px var(--foe-glow);}
+body.foeTheme .actBtn:not(.warn){background:linear-gradient(180deg,var(--foe-mid),var(--foe-deep));
+  color:var(--foe-light);box-shadow:0 3px 0 var(--foe-deep),0 0 12px var(--foe-glow);}
+body.foeTheme .big:not(.b2):not(.b3){background:linear-gradient(180deg,var(--foe-mid),var(--foe-deep));
+  color:var(--foe-light);box-shadow:0 4px 0 var(--foe-deep),0 0 14px var(--foe-glow);}
+body.foeTheme .hudbtn:hover,body.foeTheme .actBtn:hover,body.foeTheme .big:hover{filter:brightness(1.12);}
+body.foeTheme .chaosbar{box-shadow:inset 0 2px 6px #000a,0 0 0 1px var(--foe-line);}
+body.foeTheme .chaosbar i{background:linear-gradient(90deg,var(--foe-deep),var(--foe-accent),var(--foe-light));}
+body.foeTheme #foeHud{border-color:var(--foe-accent);box-shadow:inset 4px 0 var(--foe-accent),0 0 20px var(--foe-glow);}
+body.foeTheme #foeHud .fighterPortrait{border-color:var(--foe-accent);box-shadow:0 0 16px var(--foe-glow),inset 0 0 12px #ffffff0c;}
+body.foeTheme #foeHud .fighterRole,body.foeTheme #foeHud .fighterHpLabel{color:var(--foe-light);}
+body.foeTheme .card:not(.item):not(.boss){border-color:var(--foe-accent);
+  box-shadow:0 6px 0 #0000004d,0 10px 18px #0007,0 0 12px var(--foe-glow);}
+body.foeTheme .card:not(.item):not(.boss) .hdr{border-bottom-color:var(--foe-line);background:var(--foe-panel-strong);}
+body.foeTheme .card:not(.item):not(.boss) .pw{border:1px solid var(--foe-line);background:linear-gradient(110deg,var(--foe-deep),#20303c);}
+body.foeTheme .card.back{border-color:var(--foe-accent);
+  background:repeating-linear-gradient(45deg,var(--foe-deep) 0 8px,var(--foe-mid) 8px 10px,#111821 10px 17px);}
+body.foeTheme .diecard{border-color:var(--foe-accent);background:linear-gradient(170deg,var(--foe-deep),var(--foe-mid));
+  color:var(--foe-light);box-shadow:0 6px 0 var(--foe-deep),0 0 24px var(--foe-glow);}
+body.foeTheme .diecard::after{background:conic-gradient(from 0deg,#fff0,var(--foe-glow),#fff0 40%);}
+body.foeTheme .foeSelectOverlay{background:radial-gradient(ellipse at 50% 8%,var(--foe-wash),#0b1219f5 48%);}
+body.foeTheme .foeSelectOverlay h2{color:var(--foe-light);text-shadow:0 0 20px var(--foe-glow);}
+
+/* Fichas expandidas: identidade, personalidade, IA, passiva e perigo. */
+.foeSelectOverlay .foegrid{width:min(100%,1080px);max-width:1080px;max-height:min(66vh,690px);
+  overflow-y:auto;overscroll-behavior:contain;align-content:flex-start;padding:7px;gap:10px;}
+.foeSelectOverlay .foe{width:188px;min-height:292px;flex:0 0 188px;padding:11px 10px;
+  display:flex;flex-direction:column;align-items:stretch;gap:5px;text-align:left;
+  color:var(--foe-accent,#8fb0c4);border:2px solid currentColor;
+  background:linear-gradient(155deg,color-mix(in srgb,currentColor 19%,#20303c),#10131d 78%);
+  box-shadow:0 5px 0 #0a1118,0 0 13px color-mix(in srgb,currentColor 28%,transparent);}
+.foeSelectOverlay .foe:hover{transform:translateY(-4px);box-shadow:0 8px 0 #0a1118,0 0 23px currentColor;}
+.foeSelectOverlay .foe .fic{text-align:center;font-size:34px;}
+.foeSelectOverlay .foe .fn{min-height:30px;margin:1px 0;text-align:center;font-size:11px;}
+.foeSelectOverlay .foe .foeRank{align-self:center;padding:3px 7px;border:1px solid currentColor;border-radius:99px;
+  color:currentColor;font:900 7.5px/1.2 system-ui;letter-spacing:1px;text-align:center;}
+.foeSelectOverlay .foe .foeMeta{display:flex;justify-content:space-between;gap:4px;color:#e6edf4;
+  font:900 8px system-ui;letter-spacing:.5px;}
+.foeSelectOverlay .foe .foeBio{min-height:39px;color:#e2e9f1;font:600 9px/1.35 system-ui;text-align:left;}
+.foeSelectOverlay .foe .fp{margin:0;padding:6px;border:1px solid currentColor;border-radius:7px;
+  background:color-mix(in srgb,currentColor 12%,#0e161d);color:#fff0c8;font-size:8.5px;line-height:1.3;}
+.foeSelectOverlay .foe .fp b,.foeSelectOverlay .foe .foeTactic b{display:block;margin-bottom:2px;
+  color:currentColor;font:900 7px system-ui;letter-spacing:1px;}
+.foeSelectOverlay .foe .fp span{display:block;}
+.foeSelectOverlay .foe .foeTactic{margin-top:auto;padding-top:5px;border-top:1px solid #ffffff20;
+  color:#cbd6e2;font:600 8px/1.35 system-ui;}
+.foeSelectOverlay .foe.foeBoss{box-shadow:0 5px 0 #0a1118,0 0 18px color-mix(in srgb,currentColor 40%,transparent);}
+.foeSelectOverlay .foe .fmax{align-self:center;margin-top:2px;border:1px solid currentColor;
+  background:#0b1018;color:currentColor;font-size:7px;text-align:center;}
+.foeSelectOverlay .foe .fmaxO{color:#ffe17c;border-color:#f9c74f;}
+.foeSelectOverlay .foe .fmaxDevil{color:#ff9385;border-color:#ef3d35;}
+.card.boss{border-color:var(--boss-accent,var(--foe-accent,#f9c74f))!important;
+  box-shadow:0 6px 0 #0008,0 0 24px color-mix(in srgb,var(--boss-accent,var(--foe-accent,#f9c74f)) 58%,transparent)!important;}
+body.foeTheme .overlay:not(.foeSelectOverlay) h2{filter:drop-shadow(0 0 12px var(--foe-glow));}
+@media(max-width:640px){
+  .foeSelectOverlay .foegrid{max-height:61dvh;max-height:61vh;gap:7px;padding:4px;}
+  .foeSelectOverlay .foe{width:min(43vw,170px);flex-basis:min(43vw,170px);min-height:280px;padding:9px 8px;}
+  .foeSelectOverlay .foe .foeBio{min-height:46px;font-size:8.5px;}
+  .foeSelectOverlay .foe .foeTactic{font-size:7.5px;}
+}
+@media(max-width:360px){
+  .foeSelectOverlay .foe{width:calc(50vw - 14px);flex-basis:calc(50vw - 14px);min-height:286px;padding:8px 7px;}
+}
 </style>
 <link rel="stylesheet" href="online.css">
 </head>
@@ -1407,6 +1546,7 @@ body.devilmode .card:not(.item) .devilPassive span{color:#ffd3ad;}
     <div class="box"><div class="mini">ELEMENTOS (+3 vantagem)</div><div class="elkey">🔥 Fogo → 🌪 Ar → 🪨 Terra → 💧 Água → 🔥<br><span style="opacity:.7">🌑 Vazio: imune a elementos</span></div></div>
     <div class="box"><div class="mini">PLACAR</div><div id="score"></div></div>
     <button class="hudbtn" id="heroBtn" style="background:linear-gradient(180deg,#5a4a1e,#3a3012);box-shadow:0 3px 0 #241d09">🎭 PERSONAGENS</button>
+    <button class="hudbtn" id="achBtn" title="Veja as conquistas desbloqueadas e seus troféus" style="background:linear-gradient(180deg,#66521a,#34290d);color:#ffe99b;border:1px solid #f9c74f;box-shadow:0 3px 0 #241d09">🏆 CONQUISTAS &amp; TROFÉUS</button>
     <button class="hudbtn" id="foeBtn" style="background:linear-gradient(180deg,#3a2554,#241537);box-shadow:0 3px 0 #150c20">⚔ TROCAR OPONENTE</button>
     <button class="hudbtn" id="bloodBtn" style="background:linear-gradient(180deg,#8b1128,#5c0d1c);box-shadow:0 3px 0 #3a060e">🩸 MERCADO DE SANGUE</button>
     <button class="hudbtn" id="sfxBtn">🔊 SOM: LIGADO</button>
@@ -2207,15 +2347,35 @@ const FOES=[
   pass:{k:'chaos', t:'O CAOS: reescreve tudo a cada rodada e tem PUZZLES próprios'}}
 ];
 let foe=FOES[0];
+const FOE_DETAILS={
+ gremlin:{rank:'CAPANGA',bio:'Um ladrão de meias que prefere confusão a estratégia.',tactic:'Joga com firmeza, sem uma passiva especial.'},
+ bruxa:{rank:'ELITE · PÂNTANO',bio:'Mistura veneno, presságios e cartas que parecem ter saído do caldeirão.',tactic:'A cada rodada, o veneno tira 1 ponto de vida.'},
+ robo:{rank:'ELITE · MÁQUINA',bio:'Calcula probabilidades e registra suas jogadas como dados de treinamento.',tactic:'Escolhe a melhor carta disponível; varie seus valores.'},
+ palhaco:{rank:'ELITE · IMPREVISÍVEL',bio:'O dono de um circo onde até as regras são parte da piada.',tactic:'Reembaralha a regra do Caos; espere mudanças inesperadas.'},
+ cavaleiro:{rank:'GUARDIÃO OSSUDO',bio:'Um veterano que já perdeu a carne, mas não a disciplina de combate.',tactic:'Sua armadura reduz o dano recebido em 1.'},
+ dragao:{rank:'ELITE · SUCATA',bio:'Um dragão feito de peças de carro, óleo queimado e orgulho.',tactic:'Cartas de fogo recebem +3 de força.'},
+ sereia:{rank:'ELITE · MARÉ',bio:'Seduz marinheiros com promessas e cobra em vida e pontos.',tactic:'Recupera 2 de vida quando vence uma rodada.'},
+ contador:{rank:'ELITE · COBRADOR',bio:'Audita cada jogada e transforma qualquer erro em dívida.',tactic:'Confisca 15% dos seus pontos a cada rodada.'},
+ espelho:{rank:'DUELO DE IDENTIDADE',bio:'Seu reflexo conhece seus hábitos — e não hesita como você.',tactic:'Pode copiar o valor da sua carta quando ele é maior.'},
+ vazio:{rank:'ANOMALIA',bio:'Uma presença que deixa lacunas no baralho e na sua confiança.',tactic:'Seus poderes podem falhar em 35% das vezes.'},
+ gemeos:{rank:'DUPLA CAÓTICA',bio:'Dois rivais na mesma mesa, incapazes de concordar até para trapacear.',tactic:'Joga duas cartas e aproveita a melhor.'},
+ rei:{rank:'CHEFE · SOBERANO',boss:true,bio:'O Rei do Caos não aceita as regras: ele as escreve enquanto você joga.',tactic:'Acumula força, mexe nas regras e no dado, rouba recursos e acelera a insanidade.'},
+ deus:{rank:'CHEFE FINAL · DIVINDADE',boss:true,bio:'O Deus do Caos estuda suas escolhas e transforma a Ordem em sua barra de vida.',tactic:'Aprende seus valores, posições e elementos; escolhe a própria mão e pode trocar carta após ver a sua.'},
+ ordem:{rank:'CHEFE · ESPELHO SAGRADO',boss:true,bio:'O Deus da Ordem inverte os papéis: você assume o Caos e ele protege a estabilidade.',tactic:'Reorganiza a mão, anula poderes e estabiliza a realidade em 6 a cada rodada.'},
+ agiota:{rank:'ELITE · CREDOR',bio:'O Agiota do Abismo faz empréstimos que nunca acabam e cobra até o que você ainda não ganhou.',tactic:'Retém 15% dos pontos a cada rodada; pressione antes que a dívida cresça.'},
+ cartomante:{rank:'ELITE · ORÁCULO',bio:'A Cartomante sem Alma lê a partida como se o resultado já estivesse escrito.',tactic:'O Véu faz seus poderes falharem em 35% das vezes.'},
+ diabo:{rank:'CHEFE SECRETO · MESA INFERNAL',boss:true,bio:'O Diabo convida para uma mesa de truco: 96 de vida, cartas marcadas e nenhuma misericórdia.',tactic:'A força das cartas cresce a cada quatro mãos; dano e derrotas carregam o tambor do revólver.'},
+ ocaos:{rank:'CHEFE FINAL · NÍVEL 55',boss:true,bio:'O próprio tabuleiro toma forma quando o Caos chega ao último nível.',tactic:'Reescreve regras, corrompe a mão e lança puzzles; sobreviva às mudanças para vencê-lo.'}
+};
 
 /* ============ CHEFES ============ */
 const BOSSES=[
- {n:"O GREMLIN SUPREMO",e:"não segue regra nenhuma",ic:"👺",el:"vazio",pw:'furtivo',bonus:4},
- {n:"HIDRA CONTÁBIL",e:"corta uma cabeça, nasce boleto",ic:"🐍",el:"agua",pw:'fenix',bonus:3},
- {n:"COLOSSO DE SUCATA",e:"blindagem de geladeira",ic:"🏗",el:"terra",pw:'blindado',bonus:5},
- {n:"SENHOR DAS BRASAS",e:"dobra todo o dano",ic:"🔱",el:"fogo",pw:'duplo',bonus:4},
- {n:"TEMPESTADE VIVA",e:"rouba vida a cada golpe",ic:"🌩",el:"ar",pw:'vampiro',bonus:4},
- {n:"O JUIZ FINAL",e:"sentença de 7",ic:"⚖",el:"vazio",pw:'juiz',bonus:3}
+ {n:"O GREMLIN SUPREMO",e:"não segue regra nenhuma",lore:"O primeiro dos gremlins, coroado por um baralho roubado.",ic:"👺",col:"#fe5f55",el:"vazio",pw:'furtivo',bonus:4},
+ {n:"HIDRA CONTÁBIL",e:"corta uma cabeça, nasce boleto",lore:"Cada cabeça é uma dívida vencida que aprendeu a morder.",ic:"🐍",col:"#7fbf3f",el:"agua",pw:'fenix',bonus:3},
+ {n:"COLOSSO DE SUCATA",e:"blindagem de geladeira",lore:"Um titã montado com eletrodomésticos, placas e promessas quebradas.",ic:"🏗",col:"#ff9f68",el:"terra",pw:'blindado',bonus:5},
+ {n:"SENHOR DAS BRASAS",e:"dobra todo o dano",lore:"Soberano da fornalha; até suas cinzas continuam queimando.",ic:"🔱",col:"#ff6b00",el:"fogo",pw:'duplo',bonus:4},
+ {n:"TEMPESTADE VIVA",e:"rouba vida a cada golpe",lore:"Uma nuvem consciente que se mantém viva drenando seus rivais.",ic:"🌩",col:"#57c1ff",el:"ar",pw:'vampiro',bonus:4},
+ {n:"O JUIZ FINAL",e:"sentença de 7",lore:"A última instância: seu martelo transforma vereditos em dano.",ic:"⚖",col:"#f9c74f",el:"vazio",pw:'juiz',bonus:3}
 ];
 
 /* ============ REGRAS (24) ============ */
@@ -3652,13 +3812,14 @@ function triggerCaos(){
   if(isDevilMode()||caosDespertou||!vsFoe()||foe.id==='ocaos')return;
   caosDespertou=true;
   const c=FOES.find(f=>f.id==='ocaos');if(!c)return;
-  foe={...c};st.hp2=foeMaxHp();
+  foe={...c};st.hp2=foeMaxHp();applyFoeTheme();
   document.body.classList.add('chaosfight');
   hands[2]=hands[2].map(()=>mkGodCard());
   log('════════════════════════════════');
   log('🌀 <b>VOCÊ SOBREVIVEU AO NÍVEL 55.</b>');
   log('🌀 o oponente anterior foi apagado. não foi você que fez isso.');
   log('🌀 <b>O CAOS</b> senta na cadeira dele. hp '+st.hp2+'.');
+  log(`📖 <b>${FOE_DETAILS.ocaos.rank}</b>: ${FOE_DETAILS.ocaos.bio} <b>PERIGO:</b> ${FOE_DETAILS.ocaos.tactic}`);
   log('════════════════════════════════');
   chaosSays('finalmente. eu jogo pessoalmente agora.','#c44dff');
   try{S.boom();S.boom();shake()}catch(e){}
@@ -3755,16 +3916,23 @@ function CL(){return lvCfg(chaosLevel())}
 let extraRules=[];
 
 /* ============ SELEÇÃO DE OPONENTE ============ */
+const FOE_AI_LABEL={best:'TÁTICA',random:'IMPREVISÍVEL',low:'PACIENTE',power:'PODEROSA',elem:'ELEMENTAL',
+  god:'ADAPTATIVA',order:'ESTRATÉGICA',chaos:'CAÓTICA',devil:'IMPLACÁVEL'};
 function chooseFoe(first){
   const ov=document.createElement('div');ov.className='overlay foeSelectOverlay';
-  ov.innerHTML=`<h2>ESCOLHA SEU OPONENTE</h2><p>cada um tem vida, estilo de jogo e uma <b>passiva</b> própria.</p>`;
+  ov.innerHTML=`<h2>ESCOLHA SEU OPONENTE</h2><p>cada ficha mostra a história, o estilo e o perigo de cada adversário.</p>`;
   const g=document.createElement('div');g.className='foegrid';
   FOES.filter(f=>f.id!=='ocaos').forEach(f=>{
     const el=document.createElement('div');
-    el.className='foe'+(f.id==='deus'?' foeGod':'')+(f.id==='ordem'?' foeOrder':'')+(f.id==='diabo'?' foeDevil':'');
-    el.style.color=f.col;
+    const detail=FOE_DETAILS[f.id]||{rank:'OPONENTE',bio:'Uma presença imprevisível no tabuleiro.',tactic:f.pass.t};
+    el.className='foe'+(detail.boss?' foeBoss':'')+(f.id==='deus'?' foeGod':'')+(f.id==='ordem'?' foeOrder':'')+(f.id==='diabo'?' foeDevil':'');
+    el.dataset.foeId=f.id;el.style.color=f.col;el.style.setProperty('--foe-accent',f.col);
     el.innerHTML=`<div class="fic">${f.ic}</div><div class="fn">${f.n}</div>
-      <div class="fhp">❤ ${f.hp} VIDA</div><div class="fp">${f.pass.t}</div>
+      <div class="foeRank">${detail.rank}</div>
+      <div class="foeMeta"><span>❤ ${f.hp} VIDA</span><span>IA ${FOE_AI_LABEL[f.ai]||'TÁTICA'}</span></div>
+      <div class="foeBio">${detail.bio}</div>
+      <div class="fp"><b>PASSIVA</b><span>${f.pass.t}</span></div>
+      <div class="foeTactic"><b>PERIGO</b><span>${detail.tactic}</span></div>
       ${f.id==='deus'?'<div class="fmax">☠ DIFICULDADE MÁXIMA</div>':''}
       ${f.id==='ordem'?'<div class="fmax fmaxO">🌀 VOCÊ JOGA COMO O CAOS</div>':''}
       ${f.id==='diabo'?'<div class="fmax fmaxDevil">👹 DIFICULDADE MÁXIMA · TAMBOR REAL</div>':''}`;
@@ -3778,6 +3946,8 @@ function chooseFoe(first){
       }
       $('log').innerHTML='';
       log(`⚔ novo oponente: <b>${f.ic} ${f.n}</b> — ${f.pass.t}`);
+      const ficha=FOE_DETAILS[f.id];
+      if(ficha)log(`📖 <b>${ficha.rank}</b>: ${ficha.bio} <b>PERIGO:</b> ${ficha.tactic}`);
       if(f.id==='deus'){
         if(hero.id!=='ordem'&&owned.includes('ordem')){
           hero=HEROES.find(h=>h.id==='ordem');saveGame();updHeroBox();
@@ -3822,6 +3992,32 @@ let kingBonus=0;
 const isCoop=()=>mode===3;              // 2 jogadores humanos contra o oponente do jogo
 const vsFoe=()=>mode===1||mode===3;     // existe um oponente controlado pela máquina
 const isDevilMode=()=>!!(vsFoe()&&foe&&foe.id==='diabo');
+const FOE_THEME_VARS=['--foe-accent','--foe-light','--foe-deep','--foe-mid','--foe-wash',
+  '--foe-panel','--foe-panel-strong','--foe-line','--foe-glow'];
+function applyFoeTheme(){
+  const body=document.body;
+  const active=!!(vsFoe()&&foe&&!['diabo','ocaos'].includes(foe.id));
+  body.classList.toggle('foeTheme',active);
+  if(!active){FOE_THEME_VARS.forEach(k=>body.style.removeProperty(k));body.removeAttribute('data-foe-theme');return}
+  const hex=String(foe.col||'#fe5f55').replace('#','');
+  const safe=/^[0-9a-f]{6}$/i.test(hex)?hex:'fe5f55';
+  const rgb=[0,2,4].map(i=>parseInt(safe.slice(i,i+2),16));
+  const cssRgb=rgb.join(',');
+  const mix=(n,t)=>Math.round(n+(t-n)*.28);
+  const light=rgb.map(n=>mix(n,255));
+  const mid=rgb.map(n=>Math.round(n*.24));
+  const deep=rgb.map(n=>Math.round(n*.085));
+  body.style.setProperty('--foe-accent',foe.col||'#fe5f55');
+  body.style.setProperty('--foe-light',`rgb(${light.join(',')})`);
+  body.style.setProperty('--foe-deep',`rgb(${deep.join(',')})`);
+  body.style.setProperty('--foe-mid',`rgb(${mid.join(',')})`);
+  body.style.setProperty('--foe-wash',`rgba(${cssRgb},.23)`);
+  body.style.setProperty('--foe-panel',`rgba(${cssRgb},.08)`);
+  body.style.setProperty('--foe-panel-strong',`rgba(${cssRgb},.18)`);
+  body.style.setProperty('--foe-line',`rgba(${cssRgb},.62)`);
+  body.style.setProperty('--foe-glow',`rgba(${cssRgb},.38)`);
+  body.dataset.foeTheme=foe.id;
+}
 const foeMaxHp=()=>vsFoe()?(isCoop()?foe.hp*2:foe.hp):20;
 const isKing=()=>vsFoe()&&foe.id==='rei';
 const devilCardBoost=()=>isDevilMode()?Math.min(10,4+Math.floor(Math.max(0,(st.rd||1)-1)/4)):0;
@@ -5029,7 +5225,8 @@ function mkCard(forceRar){
 }
 function mkBoss(){
   const b=pick(BOSSES);
-  return{v:clamp(d(10)+b.bonus,1,16),n:b.n,e:b.e,ic:b.ic,el:b.el,r:'boss',pw:POWERS.find(p=>p.k===b.pw)};
+  return{v:clamp(d(10)+b.bonus,1,16),n:b.n,e:b.e,ic:b.ic,el:b.el,r:'boss',
+    pw:POWERS.find(p=>p.k===b.pw),bossLore:b.lore,bossColor:b.col};
 }
 function mkItem(){return{...pick(ITEMS)}}
 
@@ -5076,6 +5273,12 @@ function devilCardQuote(c){
 function cardEl(c,cls,fn){
   const el=document.createElement('div');
   el.className='card deal '+(cls||'')+' '+(c.r||'')+(c.god?' godcard':'')+(c.ordem?' ordem':'');
+  if(c.r==='boss'){
+    el.style.setProperty('--boss-accent',c.bossColor||'#f9c74f');
+    if(c.bossLore){const power=c.pw?`${c.pw.n}: ${c.pw.t}`:'';
+      el.title=`${c.n}. ${c.e}. ${c.bossLore}${power?` Poder: ${power}`:''}`;
+      el.setAttribute('aria-label',el.title);}
+  }
   // poderes enfraquecidos pela corrupção da Ordem
   if(c.pw&&c.ordem&&isGod()&&corrPenalty()>.15)el.classList.add('weakened');
   const RAR={comum:'COMUM',rara:'RARA',lendaria:'LENDÁRIA',boss:'CHEFE',puzzle:'PUZZLE',ordem:'✦ ORDEM'};
@@ -5179,7 +5382,11 @@ function upd(){
     $('foeHudRole').textContent=isCoop()?'INIMIGO DA DUPLA':'OPONENTE · IA';
     $('foeInfo').textContent=`IA ${nomesIA[foe.ai]||'TÁTICA'} · ${Math.round(perfilIA()*100)}%`;
     $('foePass').textContent=foe.pass.t+(isCoop()?' · VIDA DOBRADA':'');
-    if(enemyHud)enemyHud.style.setProperty('--fighter-accent',foe.col||'#fe5f55');
+    if(enemyHud){
+      const ficha=FOE_DETAILS[foe.id];
+      enemyHud.title=ficha?`${ficha.rank} · ${ficha.bio} Perigo: ${ficha.tactic}`:`Oponente: ${foe.n}`;
+      enemyHud.style.setProperty('--fighter-accent',foe.col||'#fe5f55');
+    }
     $('foeInfo').style.color=foe.col||'#fe5f55';
   }else{
     $('foeHudIcon').textContent='👤';
@@ -5187,7 +5394,7 @@ function upd(){
     $('foeInfo').textContent=window.__onlineSession?'DUELO ONLINE':'JOGADOR LOCAL';
     $('foeInfo').style.color='#b9cad8';
     $('foePass').textContent='jogador humano · sem passiva de IA';
-    if(enemyHud)enemyHud.style.setProperty('--fighter-accent','#57c1ff');
+    if(enemyHud){enemyHud.title='Oponente humano nesta partida.';enemyHud.style.setProperty('--fighter-accent','#57c1ff');}
   }
   $('roundBox').textContent=(isBoss?'☠ CHEFE — ':'')+'RODADA '+st.rd;
   $('roundBox').className='round'+(isBoss?' boss':'');
@@ -5300,10 +5507,13 @@ function startRound(){
     if(P==='burn')hands[2]=hands[2].map(c=>c.el==='fogo'?{...c,v:clamp(c.v+3,1,40)}:c);
   }
   if(isBoss){
-    if(vsFoe())hands[2][0]=mkBoss();
-    else{hands[1][0]=mkBoss();hands[2][0]=mkBoss()}
-    banner('CHEFE!','#ff2e88');S.boss();
-    log('☠ <b>RODADA DE CHEFE</b> — uma carta lendária de chefe entrou no jogo!');
+    const chefesRodada=[];
+    if(vsFoe()){hands[2][0]=mkBoss();chefesRodada.push(hands[2][0]);}
+    else{hands[1][0]=mkBoss();hands[2][0]=mkBoss();chefesRodada.push(hands[1][0],hands[2][0]);}
+    banner('CHEFE! '+chefesRodada[0].n,chefesRodada[0].bossColor||'#ff2e88');S.boss();
+    log('☠ <b>RODADA DE CHEFE</b> — ficha e assinatura do adversário:');
+    chefesRodada.forEach((b,i)=>log(`☠ <b style="color:${b.bossColor}">${chefesRodada.length>1?'LADO '+(i+1)+' · ':''}${b.ic} ${b.n}</b> — ${b.e}<br>
+      ${b.bossLore} <b>ASSINATURA:</b> ${b.pw.n} — ${b.pw.t}`));
   }
   if(inv[1].length<4&&Math.random()<C.items)inv[1].push(mkItem());
   if(isCoop()&&inv[3].length<4&&Math.random()<C.items)inv[3].push(mkItem());
@@ -7123,18 +7333,63 @@ const ACHS=[
  {id:'heroi10',  n:'MULTIDÃO',             d:'tenha 10 personagens',              pts:400},
  {id:'heroiall', n:'ELENCO COMPLETO',      d:'desbloqueie todos os personagens',  pts:1500},
  {id:'puz10',    n:'RESOLVEDOR',           d:'vença 10 minigames',                pts:350},
+ {id:'diaboSolo',n:'TRUCO IMPOSSÍVEL',     d:'derrote o Diabo na mesa de Truco em uma partida solo',pts:2500},
  {id:'trapaceiro',n:'HIPÓCRITA',           d:'use o menu de trapaça',             pts:1}
 ];
+const TROPHYKEY='caosreal.trophies.v1';
+const HARD_ACHIEVEMENTS=new Set(['lv40','lv55','ocaos','jetpack','pacto5','pacto0','combo10',
+  'ordem','deus','heroiall','diaboSolo']);
+let trophies={foes:{},hard:{}};
 let achs={}, achCount={};
 function loadAchs(){try{const r=localStorage.getItem(ACHKEY);if(r)achs=JSON.parse(r)||{}}catch(e){achs={}}}
 function saveAchs(){try{localStorage.setItem(ACHKEY,JSON.stringify(achs))}catch(e){}}
+function loadTrophies(){
+  try{
+    const r=JSON.parse(localStorage.getItem(TROPHYKEY)||'{}');
+    trophies={foes:r&&r.foes&&typeof r.foes==='object'?r.foes:{},
+      hard:r&&r.hard&&typeof r.hard==='object'?r.hard:{}};
+  }catch(e){trophies={foes:{},hard:{}}}
+}
+function saveTrophies(){try{localStorage.setItem(TROPHYKEY,JSON.stringify(trophies))}catch(e){}}
+function syncHardAchievementTrophies(){
+  let changed=false;
+  ACHS.forEach(a=>{
+    if(HARD_ACHIEVEMENTS.has(a.id)&&achs[a.id]&&!trophies.hard[a.id]){
+      trophies.hard[a.id]={unlockedAt:Date.now()};changed=true;
+    }
+  });
+  if(changed)saveTrophies();
+}
+function unlockHardAchievementTrophy(a){
+  if(!a||!HARD_ACHIEVEMENTS.has(a.id)||trophies.hard[a.id])return;
+  trophies.hard[a.id]={unlockedAt:Date.now()};saveTrophies();
+}
+function showOpponentTrophyToast(f){
+  const t=document.createElement('div');t.className='achToast trophyToast';
+  const head=document.createElement('div');head.className='at';head.textContent='🏆 NOVO TROFÉU · OPONENTE VENCIDO';
+  const name=document.createElement('div');name.className='an';name.textContent=`${f.ic||'🏆'} ${f.n}`;
+  const desc=document.createElement('div');desc.className='ad';desc.textContent='A vitória foi guardada na Sala de Troféus.';
+  t.append(head,name,desc);document.body.appendChild(t);
+  setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),600)},3800);
+}
+function registerOpponentTrophy(id){
+  if(window.__onlineSession||!vsFoe())return false;
+  const f=FOES.find(x=>x.id===id);if(!f)return false;
+  const old=trophies.foes[id],wins=typeof old==='number'?old:(Number(old&&old.wins)||(old?1:0));
+  trophies.foes[id]={wins:wins+1,unlockedAt:Number(old&&old.unlockedAt)||Date.now()};
+  saveTrophies();
+  if(wins===0)showOpponentTrophyToast(f);
+  return true;
+}
 function ach(id){
   if(achs[id])return;
   const a=ACHS.find(x=>x.id===id);if(!a)return;
+  const dificil=HARD_ACHIEVEMENTS.has(a.id);
   achs[id]=1;saveAchs();
+  if(dificil)unlockHardAchievementTrophy(a);
   bank+=a.pts;saveGame();
   const t=document.createElement('div');t.className='achToast';
-  t.innerHTML=`<div class="at">🏆 CONQUISTA</div><div class="an">${a.n}</div>
+  t.innerHTML=`<div class="at">${dificil?'🏆 TROFÉU LENDÁRIO':'🏆 CONQUISTA'}</div><div class="an">${a.n}</div>
     <div class="ad">${a.d}</div><div class="ap">+${a.pts} pontos</div>`;
   document.body.appendChild(t);
   try{S.fanfare()}catch(e){}
@@ -7145,29 +7400,76 @@ function bump(k,alvo,id){achCount[k]=(achCount[k]||0)+1;if(achCount[k]>=alvo)ach
 
 
 function telaConquistas(){
-  const ov=document.createElement('div');ov.className='overlay';
+  const ov=document.createElement('div');ov.className='overlay achOverlay';
+  ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label','Conquistas');
   const tem=ACHS.filter(a=>achs[a.id]).length;
   const tot=ACHS.reduce((n,a)=>n+(achs[a.id]?a.pts:0),0);
-  ov.innerHTML=`<h2 style="color:#f9c74f">🏆 CONQUISTAS</h2>
-    <p><b>${tem}</b> de <b>${ACHS.length}</b> · <b>${tot}</b> pontos ganhos</p>`;
-  const g=document.createElement('div');
-  g.style.cssText='display:flex;flex-wrap:wrap;gap:7px;justify-content:center;max-width:720px;margin:12px auto;max-height:56vh;overflow:auto';
+  const titulo=document.createElement('h2');titulo.className='achTitle';titulo.textContent='🏆 CONQUISTAS';ov.appendChild(titulo);
+  const resumo=document.createElement('p');resumo.className='achSummary';
+  resumo.textContent=`${tem} de ${ACHS.length} desbloqueadas · ${tot} pontos ganhos`;ov.appendChild(resumo);
+  const nav=document.createElement('div');nav.className='achNav';
+  const arrow=document.createElement('button');arrow.type='button';arrow.className='achNavBtn';
+  arrow.textContent='➡️ SALA DE TROFÉUS';arrow.setAttribute('aria-label','Abrir a Sala de Troféus');
+  arrow.onclick=()=>{S.click();ov.remove();telaSalaTrofeus()};nav.appendChild(arrow);
+  const close=document.createElement('button');close.type='button';close.className='achNavBtn close';
+  close.textContent='FECHAR';close.onclick=()=>{S.click();ov.remove()};nav.appendChild(close);ov.appendChild(nav);
+  const g=document.createElement('div');g.className='achList';
   ACHS.forEach(a=>{
-    const ok=!!achs[a.id];
-    const el=document.createElement('div');
-    el.style.cssText=`width:160px;padding:9px 10px;border-radius:9px;text-align:left;
-      border:1.5px solid ${ok?'#f9c74f':'#2a3644'};background:${ok?'rgba(42,34,6,.7)':'rgba(10,16,24,.6)'};
-      opacity:${ok?1:.5}`;
-    el.innerHTML=`<div style="font:900 10.5px system-ui;color:${ok?'#f9c74f':'#8fb0c4'};letter-spacing:.8px">
-        ${ok?'🏆':'🔒'} ${a.n}</div>
-      <div style="font:600 9.5px/1.4 system-ui;color:#bfe4ff;margin:3px 0">${a.d}</div>
-      <div style="font:900 9.5px system-ui;color:#3ddc97">+${a.pts}</div>`;
-    g.appendChild(el);
+    const ok=!!achs[a.id],el=document.createElement('div');
+    el.className='achCard '+(ok?'unlocked':'locked');
+    const name=document.createElement('strong');name.className='achCardTitle';name.textContent=`${ok?'🏆':'🔒'} ${a.n}`;
+    const desc=document.createElement('div');desc.className='achCardDesc';desc.textContent=a.d;
+    const pts=document.createElement('div');pts.className='achCardPts';pts.textContent=`${ok?'GANHA':'RECOMPENSA'} · ${a.pts} PONTOS`;
+    el.append(name,desc,pts);g.appendChild(el);
   });
-  ov.appendChild(g);
-  const b=document.createElement('button');b.className='big';b.textContent='FECHAR';
-  b.onclick=()=>{S.click();ov.remove()};ov.appendChild(b);
-  document.body.appendChild(ov);
+  ov.appendChild(g);document.body.appendChild(ov);arrow.focus({preventScroll:true});
+}
+function telaSalaTrofeus(){
+  syncHardAchievementTrophies();
+  const adversarios=FOES.slice();
+  const desafios=ACHS.filter(a=>HARD_ACHIEVEMENTS.has(a.id));
+  const trofeusAdversarios=adversarios.filter(f=>!!trophies.foes[f.id]).length;
+  const trofeusDesafios=desafios.filter(a=>!!(trophies.hard[a.id]||achs[a.id])).length;
+  const ov=document.createElement('div');ov.className='overlay achOverlay trophyRoom';
+  ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label','Sala de Troféus');
+  const titulo=document.createElement('h2');titulo.className='achTitle';titulo.textContent='🏆 SALA DE TROFÉUS';ov.appendChild(titulo);
+  const resumo=document.createElement('p');resumo.className='achSummary';
+  resumo.textContent=`${trofeusAdversarios}/${adversarios.length} oponentes vencidos · ${trofeusDesafios}/${desafios.length} desafios lendários`;ov.appendChild(resumo);
+  const nav=document.createElement('div');nav.className='achNav';
+  const back=document.createElement('button');back.type='button';back.className='achNavBtn';
+  back.textContent='⬅ VOLTAR ÀS CONQUISTAS';back.setAttribute('aria-label','Voltar à lista de conquistas');
+  back.onclick=()=>{S.click();ov.remove();telaConquistas()};nav.appendChild(back);
+  const close=document.createElement('button');close.type='button';close.className='achNavBtn close';
+  close.textContent='FECHAR';close.onclick=()=>{S.click();ov.remove()};nav.appendChild(close);ov.appendChild(nav);
+  const content=document.createElement('div');content.className='trophyContent';
+  const section=(label)=>{const sec=document.createElement('section');sec.className='trophyShelf';
+    const h=document.createElement('h3');h.className='trophyShelfTitle';h.textContent=label;sec.appendChild(h);
+    const grid=document.createElement('div');grid.className='trophyGrid';sec.appendChild(grid);content.appendChild(sec);return grid};
+  const foesGrid=section(`⚔ TROFÉUS DE OPONENTES · ${trofeusAdversarios}/${adversarios.length}`);
+  adversarios.forEach(f=>{
+    const record=trophies.foes[f.id],ok=!!record;
+    const wins=typeof record==='number'?record:(Number(record&&record.wins)||1);
+    const card=document.createElement('div');card.className='trophyCard '+(ok?'earned':'locked');
+    if(['diabo','ocaos','deus','rei'].includes(f.id))card.classList.add('legendary');
+    const icon=document.createElement('div');icon.className='trophyIcon';icon.textContent=ok?(f.ic||'🏆'):'🔒';
+    const name=document.createElement('strong');name.className='trophyName';name.textContent=f.n;
+    const detail=document.createElement('div');detail.className='trophyDetail';
+    detail.textContent=ok?`${wins} ${wins===1?'vitória registrada':'vitórias registradas'}`:'Derrote este oponente para conquistar';
+    card.append(icon,name,detail);foesGrid.appendChild(card);
+  });
+  const hardGrid=section(`✨ DESAFIOS LENDÁRIOS · ${trofeusDesafios}/${desafios.length}`);
+  desafios.forEach(a=>{
+    const ok=!!(trophies.hard[a.id]||achs[a.id]);
+    const card=document.createElement('div');card.className='trophyCard legendary '+(ok?'earned':'locked');
+    const icon=document.createElement('div');icon.className='trophyIcon';icon.textContent=ok?'🌟':'🔒';
+    const name=document.createElement('strong');name.className='trophyName';name.textContent=a.n;
+    const detail=document.createElement('div');detail.className='trophyDetail';
+    detail.textContent=ok?'Conquista lendária desbloqueada':a.d;
+    card.append(icon,name,detail);hardGrid.appendChild(card);
+  });
+  const dica=document.createElement('p');dica.className='achSummary';
+  dica.textContent='Vença cada oponente para registrar seu emblema. As conquistas mais difíceis também viram troféus lendários.';
+  content.appendChild(dica);ov.appendChild(content);document.body.appendChild(ov);back.focus({preventScroll:true});
 }
 /* ==================================================================
    8) DOSSIÊ: o Caos analisa a sua partida de verdade
@@ -7275,6 +7577,7 @@ function proximoInimigo(){
   const disp=FOES.filter(f=>f.id!=='ocaos'&&f.id!=='diabo');
   const f=disp[survKills%disp.length];
   foe={...f, hp:Math.round(f.hp*(1+survKills*.12))};
+  applyFoeTheme();
   st.hp2=foeMaxHp();
   log('════════════════════════════════');
   log(`⚔ <b>INIMIGO ${survKills+1}</b>: ${foe.ic} <b>${foe.n}</b> — ${st.hp2} de vida. sua vida NÃO recupera.`);
@@ -7289,6 +7592,7 @@ function finish(){
   if(over)return;
   // MODO SOBREVIVÊNCIA: derrubou um? entra o próximo, sua vida NÃO recupera
   if(survival&&st.hp2<=0&&st.hp1>0){
+    registerOpponentTrophy(foe.id);
     survKills++;survSave(survKills);
     st.score+=500*survKills;
     log(`☠ <b>${foe.n} CAIU.</b> total: <b>${survKills}</b>. +${500*survKills} pontos.`);
@@ -7318,8 +7622,12 @@ function finish(){
     msg=isCoop()?`dois contra um, e ${foe.n} caiu com o dobro de vida.`:(isDevilMode()?'você ganhou a mão. o Diabo finge que não estava contando as cartas.':'você domou o caos… por enquanto.');
     S.fanfare();
   }
-  // ---- CONQUISTAS DE FIM DE PARTIDA ----
+  // ---- CONQUISTAS E TROFÉUS DE FIM DE PARTIDA ----
   try{
+    if(!d1&&d2&&vsFoe()&&!window.__onlineSession){
+      registerOpponentTrophy(foe.id);
+      if(mode===1&&isDevilMode())ach('diaboSolo');
+    }
     const lvF=chaosLevel();
     if(lvF>=20)ach('lv20'); if(lvF>=40)ach('lv40'); if(lvF>=55)ach('lv55');
     if(!d1&&st.hp1===20)ach('perfeito');
@@ -7406,6 +7714,7 @@ function startNewRun(){
    const ab=$('acusarBtn');if(ab)ab.style.display='none';}
   document.body.classList.toggle('godmode',mode===1&&foe&&foe.id==='deus');
   document.body.classList.toggle('devilmode',mode!==2&&foe&&foe.id==='diabo');
+  applyFoeTheme();
   devilTauntIndex=0;resetDevilGun();
   updCorr();updHeroBox();
   document.body.classList.remove('drunk');updSan();resetChaosClock();
@@ -7484,6 +7793,7 @@ document.addEventListener('keydown',e=>{
     if(d){e.preventDefault();d.click()}
   }
 });
+$('achBtn').onclick=()=>{S.click();telaConquistas()};
 $('heroBtn').onclick=()=>{if(window.__onlineSession)return;if(busy){log('⛔ termine a rodada antes de trocar de personagem.');return}S.click();heroScreen(false)};
 $('heroBox').onclick=()=>{if(window.__onlineSession||busy)return;S.click();heroScreen(false)};
 $('heroBox').onkeydown=e=>{if((e.key==='Enter'||e.key===' ')&&!window.__onlineSession&&!busy){e.preventDefault();S.click();heroScreen(false)}};
@@ -7555,10 +7865,10 @@ log('🎰 <b>APOSTE</b> (tecla A) antes da rodada: acertou, dano dobrado. errou,
 log('🧬 <b>FUNDA</b> duas cartas (tecla F, 1× por partida): os valores somam e ela herda os DOIS poderes.');
 log('🎭 a partir do nível 12 <b>o oponente TRAPACEIA na sua cara</b> — e avisa. Você tem <b>1 ACUSAÇÃO</b> (tecla X): acertou, ele toma 5 e a trapaça é anulada; errou, você perde 4.');
 log('💀 <b>CICATRIZES</b>: a carta com que você morreu fica salva e volta nas próximas partidas, mais forte.');
-log('🏆 <b>30 CONQUISTAS</b> que valem pontos de banco. Abra pelo menu ⚙ (senha 12345).');
+log(`🏆 <b>${ACHS.length} CONQUISTAS</b> que valem pontos de banco. Acesse pelo botão <b>🏆 CONQUISTAS &amp; TROFÉUS</b> no HUD; use a seta para abrir a Sala de Troféus.`);
 log('🔥 <b>NÍVEIS DE APOSTA</b> e <b>MODO SOBREVIVÊNCIA</b> também ficam no menu ⚙.');
 /* ---- INÍCIO ---- */
-loadSave();loadScars();loadAchs();loadStake();updHeroBox();
+loadSave();loadScars();loadAchs();loadTrophies();syncHardAchievementTrophies();loadStake();applyFoeTheme();updHeroBox();
 renderPactos();renderMald();
 // O lobby já é a tela inicial. A escolha de oponente fica apenas no botão
 // TROCAR OPONENTE; o atalho JOGAR SOZINHO inicia contra o Gremlin padrão.
@@ -7598,6 +7908,7 @@ renderPactos();renderMald();
       scars=[];stake=0;survival=false;survKills=0;mode=2;
       document.querySelectorAll('.foeSelectOverlay').forEach(x=>x.remove());
       document.body.classList.remove('godmode','coop');
+      applyFoeTheme();
       try{updHeroBox();upd()}catch(e){}
     };
     window.__restoreOnlineConfig=function(){
@@ -7611,6 +7922,7 @@ renderPactos();renderMald();
       document.body.classList.toggle('coop',mode===3);
       document.body.classList.toggle('godmode',mode===1&&foe.id==='deus');
       document.body.classList.toggle('devilmode',mode!==2&&foe.id==='diabo');
+      applyFoeTheme();
       const modeButton=$('modeBtn');
       if(modeButton)modeButton.textContent=mode===1?'👥 MODO: 1 JOGADOR':(mode===2?'👥 MODO: 2 JOGADORES':'🤝 MODO: 2 vs 1 (COOP)');
       try{updHeroBox();upd()}catch(e){}
@@ -7633,6 +7945,7 @@ renderPactos();renderMald();
         if(!s||!s.st||!s.hands)return false;
         st={...st,...s.st};turn=(Number(s.turn)===2?2:1);mode=2;
         document.body.classList.remove('devilmode');
+        applyFoeTheme();
         hands=s.hands;inv=s.inv||{1:[],2:[],3:[]};picked=s.picked||{1:null,2:null,3:null};
         buffs=s.buffs||{1:0,2:0,3:0};flags=s.flags||{1:{},2:{},3:{}};
         const hydrateRule=r=>r?(RULES.find(x=>x.n===r.n)||r):null;
