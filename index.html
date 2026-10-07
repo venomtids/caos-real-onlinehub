@@ -1088,6 +1088,31 @@ body.godmode .logo{background:linear-gradient(180deg,#fff,#ff2e88);-webkit-backg
   .card,.big,.actBtn,.hudbtn{scroll-behavior:auto}
 }
 
+/* Menu de opções fixo na parte inferior; o Diabo mantém seus controles próprios. */
+.gameMenu{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));
+  z-index:75;display:flex;align-items:flex-start;}
+.gameMenuToggle{min-width:124px;min-height:46px;padding:10px 16px;border:1px solid #57c1ff;border-radius:12px;
+  color:#e9f8ff;background:linear-gradient(145deg,#1b4056,#111f2a);box-shadow:0 4px 16px #0009,0 0 15px #57c1ff33;
+  font:900 12px system-ui;letter-spacing:1.5px;cursor:pointer;transition:filter .15s,transform .15s;}
+.gameMenuToggle:hover{filter:brightness(1.13);transform:translateY(-2px);}
+.gameMenuToggle:focus-visible{outline:3px solid #f9c74f;outline-offset:3px;}
+.gameMenuPanel{display:none;position:absolute;left:0;bottom:calc(100% + 9px);width:min(280px,calc(100vw - 24px));
+  max-height:min(72vh,640px);overflow-y:auto;gap:7px;padding:10px;border:1px solid #57c1ff77;border-radius:14px;
+  background:linear-gradient(160deg,rgba(24,43,56,.98),rgba(10,16,22,.98));box-shadow:0 12px 38px #000c,0 0 24px #57c1ff22;}
+.gameMenu.open .gameMenuPanel{display:grid;}
+.gameMenuPanel .hudbtn{min-height:44px;padding:10px 12px;text-align:left;letter-spacing:.5px;}
+.gameMenuPanel .hudbtn:hover{filter:brightness(1.12);transform:translateY(-1px);}
+body.devilmode #gameMenu{display:none!important;}
+@media(max-width:640px){
+  .gameMenu{left:max(8px,env(safe-area-inset-left));bottom:max(8px,env(safe-area-inset-bottom));}
+  .gameMenuPanel{width:min(280px,calc(100vw - 16px));max-height:68vh;padding:8px;gap:6px;}
+  .gameMenuPanel .hudbtn{min-height:46px;}
+}
+@media(prefers-reduced-motion:reduce){.gameMenuToggle,.gameMenuPanel .hudbtn{transition:none;}}
+
+/* Os cortes de informação valem só para o HUD normal; o modo Diabo mantém seu HUD dedicado. */
+body:not(.devilmode) .hud .hudNormalTrim{display:none!important;}
+
 /* ---------- MODO DO DIABO: mesa de truco + HUD mínimo ---------- */
  .devilTableTitle{display:none;}
 .foe.foeDevil{border-color:#ef3d35;box-shadow:0 0 18px #ef3d3555,0 5px 0 #1c100d;}
@@ -1503,7 +1528,7 @@ body.foeTheme .overlay:not(.foeSelectOverlay) h2{filter:drop-shadow(0 0 12px var
           <i class="devilChamber"></i><i class="devilChamber"></i><i class="devilChamber"></i>
           <i class="devilChamber"></i><i class="devilChamber"></i><i class="devilChamber"></i>
         </div><span class="devilTrigger" aria-hidden="true">⌁</span>
-        <div class="devilGunText"><strong id="devilGunState">INSTABILIDADE · TAMBOR CARREGADO</strong>
+        <div class="devilGunText"><strong id="devilGunState">INSANIDADE · TAMBOR CARREGADO</strong>
           <small id="devilGunCount">1 de 6 câmaras · gire e veja</small></div>
       </div>
       <div class="devilActions"><button class="devilMiniBtn" id="devilModeBtn" type="button" title="Alternar modo de jogo">MODO</button>
@@ -1528,7 +1553,7 @@ body.foeTheme .overlay:not(.foeSelectOverlay) h2{filter:drop-shadow(0 0 12px var
       <div class="hpline fighterHpRow"><span class="lbl fighterHpLabel">VIDA</span><span class="bar red fighterBar"><i id="b2" style="width:100%"></i></span><span class="hpn" id="h2">20</span></div>
       <div class="fighterAbility" id="foePass">sem passiva — o clássico</div>
     </div>
-    <div class="box">
+    <div class="box hudNormalTrim">
       <div class="mini">PONTOS × SEQUÊNCIA</div>
       <div class="scoreboard"><span class="sc" id="scoreN">0</span><span style="font-size:16px">×</span><span class="mu" id="multN">1</span></div>
     </div>
@@ -1538,21 +1563,13 @@ body.foeTheme .overlay:not(.foeSelectOverlay) h2{filter:drop-shadow(0 0 12px var
     <div class="box" id="corrBox"><div class="mini">⚔ CORRUPÇÃO DA ORDEM</div>
       <div class="corrbar"><i id="corrFill"></i><b id="corrTxt">100 / 100</b></div>
       <div class="elkey" id="corrDesc" style="margin-top:4px">a Ordem resiste, intacta.</div></div>
-    <div class="box" id="sanBox"><div class="mini">🧭 ESTABILIDADE</div>
+    <div class="box" id="sanBox"><div class="mini">🌀 INSANIDADE</div>
       <div class="sanFace" id="sanFace">🙂</div>
-      <div class="sanbar"><i id="sanFill"></i><b id="sanTxt">0 / 100</b></div>
+      <div class="sanbar"><i id="sanFill"></i><b id="sanTxt">0 / 100 INSANIDADE</b></div>
       <div class="elkey" id="sanDesc" style="margin-top:4px">a mente ainda resiste…</div></div>
-    <div class="box"><div class="mini">REGRA ATUAL</div><div id="hudRule" style="font-size:12.5px;font-weight:900">—</div></div>
-    <div class="box"><div class="mini">ELEMENTOS (+3 vantagem)</div><div class="elkey">🔥 Fogo → 🌪 Ar → 🪨 Terra → 💧 Água → 🔥<br><span style="opacity:.7">🌑 Vazio: imune a elementos</span></div></div>
-    <div class="box"><div class="mini">PLACAR</div><div id="score"></div></div>
-    <button class="hudbtn" id="heroBtn" style="background:linear-gradient(180deg,#5a4a1e,#3a3012);box-shadow:0 3px 0 #241d09">🎭 PERSONAGENS</button>
-    <button class="hudbtn" id="achBtn" title="Veja as conquistas desbloqueadas e seus troféus" style="background:linear-gradient(180deg,#66521a,#34290d);color:#ffe99b;border:1px solid #f9c74f;box-shadow:0 3px 0 #241d09">🏆 CONQUISTAS &amp; TROFÉUS</button>
-    <button class="hudbtn" id="foeBtn" style="background:linear-gradient(180deg,#3a2554,#241537);box-shadow:0 3px 0 #150c20">⚔ TROCAR OPONENTE</button>
-    <button class="hudbtn" id="bloodBtn" style="background:linear-gradient(180deg,#8b1128,#5c0d1c);box-shadow:0 3px 0 #3a060e">🩸 MERCADO DE SANGUE</button>
-    <button class="hudbtn" id="sfxBtn">🔊 SOM: LIGADO</button>
-    <button class="hudbtn" id="modeBtn">👥 MODO: 1 JOGADOR</button>
-    <button class="hudbtn" id="liteBtn">⚡ MODO LEVE: OFF</button>
-    <button class="hudbtn" onclick="location.reload()">↻ REINICIAR</button>
+    <div class="box hudNormalTrim"><div class="mini">REGRA ATUAL</div><div id="hudRule" style="font-size:12.5px;font-weight:900">—</div></div>
+    <div class="box hudNormalTrim"><div class="mini">ELEMENTOS (+3 vantagem)</div><div class="elkey">🔥 Fogo → 🌪 Ar → 🪨 Terra → 💧 Água → 🔥<br><span style="opacity:.7">🌑 Vazio: imune a elementos</span></div></div>
+    <div class="box hudNormalTrim"><div class="mini">PLACAR</div><div id="score"></div></div>
   </div>
 
   <div class="board">
@@ -1579,6 +1596,19 @@ body.foeTheme .overlay:not(.foeSelectOverlay) h2{filter:drop-shadow(0 0 12px var
     <div class="center"><button class="big" id="next" style="display:none">PRÓXIMA RODADA ▶</button></div>
     <div class="log" id="log"></div>
   </div>
+</div>
+<div id="gameMenu" class="gameMenu">
+  <div id="gameMenuPanel" class="gameMenuPanel" role="group" aria-label="Opções do jogo">
+    <button class="hudbtn" id="heroBtn" style="background:linear-gradient(180deg,#5a4a1e,#3a3012);box-shadow:0 3px 0 #241d09">🎭 PERSONAGENS</button>
+    <button class="hudbtn" id="achBtn" title="Veja as conquistas desbloqueadas e seus troféus" style="background:linear-gradient(180deg,#66521a,#34290d);color:#ffe99b;border:1px solid #f9c74f;box-shadow:0 3px 0 #241d09">🏆 CONQUISTAS &amp; TROFÉUS</button>
+    <button class="hudbtn" id="foeBtn" style="background:linear-gradient(180deg,#3a2554,#241537);box-shadow:0 3px 0 #150c20">⚔ TROCAR OPONENTE</button>
+    <button class="hudbtn" id="bloodBtn" style="background:linear-gradient(180deg,#8b1128,#5c0d1c);box-shadow:0 3px 0 #3a060e">🩸 MERCADO DE SANGUE</button>
+    <button class="hudbtn" id="sfxBtn">🔊 SOM: LIGADO</button>
+    <button class="hudbtn" id="modeBtn">👥 MODO: 1 JOGADOR</button>
+    <button class="hudbtn" id="liteBtn">⚡ MODO LEVE: OFF</button>
+    <button class="hudbtn" onclick="location.reload()">↻ REINICIAR</button>
+  </div>
+  <button id="gameMenuToggle" class="gameMenuToggle" type="button" aria-expanded="false" aria-controls="gameMenuPanel">☰ MENU</button>
 </div>
 </div>
 
@@ -3874,8 +3904,8 @@ function tickChaos(){
     setTimeout(()=>f.parentElement.classList.remove('chaosPulse'),700);
     if(lv===10){S.doomBell();setTimeout(()=>banner('APOCALIPSE','#ff1744'),900)}
     if(lv>=20&&lv%10===0){S.doomBell();hallucinate()}
-    // o caos alimenta a insanidade em qualquer modo
-    addSan(1.2+Math.floor(lv/10)*jumped);
+    // o caos também alimenta a insanidade, mas em passos pequenos
+    addSan((.3+Math.floor(lv/20)*.1)*jumped);
   }
 }
 document.addEventListener('visibilitychange',()=>{
@@ -3960,7 +3990,7 @@ function chooseFoe(first){
       }
       if(f.id==='ordem'){
         log('🤲 <b>MODO INVERSO</b> — o espelho do Deus do Caos. Agora <b>VOCÊ é o DEUS DO CAOS</b>: sua mão vem cheia de <b>CARTAS DIVINAS DO CAOS</b> e a dele é feita de <b>CARTAS DA ORDEM</b>.');
-        log('🧭 A <b>INSTABILIDADE</b> deixou de ser um problema: ela te <b>FORTALECE</b>. Quanto mais instável o mundo, mais forte o seu golpe (até +60% de dano).');
+        log('🧭 A <b>INSANIDADE</b> deixou de ser um problema: ela te <b>FORTALECE</b>. Quanto mais alta a insanidade, mais forte o seu golpe (até +60% de dano).');
         log('⚖ A passiva dele trabalha contra isso: a cada rodada ele reorganiza a mão e <b>ESTABILIZA a realidade em +6</b>. Ele joga com precisão cirúrgica — sempre a menor carta que basta pra te vencer.');
         log('❤ Ele tem <b>44 de vida</b>. É a segunda maior do jogo.');
         S.doomBell();flash('#f9c74f55');shake();
@@ -3973,7 +4003,7 @@ function chooseFoe(first){
       if(f.id==='diabo'){
         devilTauntIndex=0;
         log('👹 <b>MESA DO DIABO</b>: baralho de truco, texto sem piedade, IA que lê a rodada e 96 de vida infernal.');
-        log('🔫 a <b>INSTABILIDADE carrega o tambor</b>. cada derrota/dano gira de 1 a 6 câmaras; se parar numa carregada, o tiro tira vida. quanto pior você fica, mais balas entram — e cada bala dói mais.');
+        log('🔫 a <b>INSANIDADE carrega o tambor</b>. cada derrota/dano gira de 1 a 6 câmaras; se parar numa carregada, o tiro tira vida. quanto maior a insanidade, mais balas entram — e cada bala dói mais.');
         log('🃏 sem eventos, alucinações ou HUD barulhento: aqui só tem feltro, cartas e decisões que você vai defender mal.');
         S.doomBell();flash('#ef3d3555');shake();
       }
@@ -4094,11 +4124,11 @@ function updateDevilHUD(){
   if(hp2)hp2.textContent=Math.max(0,Math.ceil(st.hp2));
   if(round)round.textContent='MÃO '+(st.rd||1);
   const state=$('devilGunState'),count=$('devilGunCount');
-  if(state)state.textContent=devilGun.lastText||'INSTABILIDADE · TAMBOR CARREGADO';
-  if(count)count.textContent=`${devilGun.bullets.size}/6 CÂMARAS · INSTABILIDADE ${Math.round(san)}%`;
+  if(state)state.textContent=devilGun.lastText||'INSANIDADE · TAMBOR CARREGADO';
+  if(count)count.textContent=`${devilGun.bullets.size}/6 CÂMARAS · INSANIDADE ${Math.round(san)}%`;
   const cylinder=$('devilCylinder');
   if(cylinder){
-    cylinder.setAttribute('aria-label',`${devilGun.bullets.size} câmaras carregadas; instabilidade ${Math.round(san)} por cento`);
+    cylinder.setAttribute('aria-label',`${devilGun.bullets.size} câmaras carregadas; insanidade ${Math.round(san)} por cento`);
     cylinder.querySelectorAll('.devilChamber').forEach((chamber,i)=>{
       chamber.classList.toggle('aimed',i===devilGun.chamber);
       chamber.classList.toggle('loaded',devilGun.bullets.has(i));
@@ -4149,8 +4179,7 @@ function triggerDevilRoulette(damage,loss=false){
   }
   updateDevilHUD();
 }
-/* ---- ESTABILIDADE: 100 = realidade firme, 0 = tudo desmorona.
-       internamente ainda usamos 'san' (0..100) como INSTABILIDADE. ---- */
+/* ---- INSANIDADE: san vai de 0 (lucidez) a 100 (ruptura da realidade). ---- */
 const estab=()=>Math.round(100-san);
 const SANDESC=[[0,'a realidade está firme.'],[15,'uma rachadura fina no ar.'],
  [30,'os números tremem quando você desvia o olhar.'],[45,'o tabuleiro não é mais confiável.'],
@@ -4167,7 +4196,7 @@ const WHISPERS=['jogue a da esquerda…','ele já sabe','os números mentem','n�
  'ele vê a sua mão','olhe de novo','não era 7','você concordou com isso'];
 
 /* a INSANIDADE existe em TODOS os modos */
-const SAN_SLOW=.62;   // ganho global de insanidade (menor = mais devagar)
+const SAN_SLOW=.4;   // desacelera a insanidade nos modos normais; o Diabo conserva sua progressão
 function addSan(n){
   if(isDevilMode()){
     const prev=san;san=clamp(san+n,0,100);
@@ -4175,8 +4204,12 @@ function addSan(n){
     updSan();return;
   }
   if(isGod()||heroIs('monge'))return;   // Deus do Caos e o Monge não sofrem insanidade
-  if(isOrdemFoe()){ // você É o caos: a instabilidade te fortalece, não te fere
-    san=clamp(san+n*.5,0,100);updSan();return; }
+  if(isOrdemFoe()){
+    const prev=san,ganho=n>0?n*SAN_SLOW*.5:n*.5;
+    san=clamp(san+ganho,0,100);
+    if(san>prev+.4)sanRising=true;
+    updSan();return;
+  }
   const prev=san;
   if(n>0){
     let mult=isKing()?1.25:1;
@@ -4190,21 +4223,19 @@ function addSan(n){
   updSan();
   if(n>0&&visualRand()<.18+san/400)whisper();
 }
-/* a mente se recupera sozinha um pouco a cada rodada */
+/* a insanidade aumenta um pequeno passo por rodada nos modos normais */
 function sanDecay(){
   if(isDevilMode()){
     const prev=san;san=clamp(san+.9+chaosLevel()*.03,0,100);
     if(san>prev+.4)sanRising=true;
     updSan();return;
   }
-  // a INSTABILIDADE agora cresce sozinha conforme o caos avança
   const lv=chaosLevel();
-  const cresce=lv*0.42;                       // quanto mais fundo, mais rápido desmorona
-  const cura=(isKing()||isGod())?.25:0.65;
-  const delta=cresce-cura;
-  if(delta>0)addSan(delta);
-  else{san=clamp(san+delta,0,100);sanRising=false}
-  updSan();
+  const ganhoRodada=1.1+Math.min(.5,Math.max(0,lv-1)*.01);
+  const antes=san;
+  addSan(ganhoRodada);
+  // Mesmo um aumento fracionário conta como insanidade em alta.
+  sanRising=san>antes;
 }
 function updSan(){
   if(isDevilMode()){
@@ -4216,7 +4247,7 @@ function updSan(){
   }
   if(isGod()){$('sanBox').style.display='none';return}
   $('sanBox').style.display='';
-  $('sanFill').style.width=san+'%';$('sanTxt').textContent=estab()+' / 100 ESTÁVEL';
+  $('sanFill').style.width=san+'%';$('sanTxt').textContent=san.toFixed(1)+' / 100 INSANIDADE';
   let d=SANDESC[0][1],fc=SANFACE[0][1];
   SANDESC.forEach(([t,x])=>{if(san>=t)d=x});
   SANFACE.forEach(([t,x])=>{if(san>=t)fc=x});
@@ -4675,7 +4706,7 @@ function cheatPanel(){
     log('🎭 <b>[TESTE]</b> personagem: <b>DEUS DA COMÉDIA</b>.');
   };
   $('cheatRage').onclick=()=>{st.hp1=2;san=95;upd();S.doom();
-    cheatMsg('vida 2 / instabilidade 95 → fúria máxima')};
+    cheatMsg('vida 2 / insanidade 95 → fúria máxima')};
   $('cheatCalm').onclick=()=>{st.hp1=20;san=0;upd();S.heal();cheatMsg('rosto tranquilo')};
   // ---- NOVIDADES ----
   $('cheatPacto').onclick=()=>{$('cheatPanel').classList.remove('open');ofertaPacto()};
@@ -5484,7 +5515,8 @@ function startRound(){
     if(P==='tax'&&st.score>0){const t=Math.floor(st.score*.15);st.score=Math.max(0,st.score-t);popEl('scoreN');
       log(foe.id==='agiota'?`💸 <b>JUROS DO AGIOTA</b>: -${t} pontos — dívida não prescreve.`:`🧾 IMPOSTO do Contador: -${t} pontos`)}
     if(P==='king'){kingBonus+=2;log(`👑 REALEZA: o Rei acumula +${kingBonus} de valor`);
-      addSan(6+chaosLevel()*.9);kingAct()}
+      addSan(.5+chaosLevel()*.05); // ganho moderado por rodada
+      kingAct()}
     if(P==='god'){
       // ele aprende e comenta; e a cada 4 rodadas rouba um pouco da Ordem
       setTimeout(godThinks,500);
@@ -6274,7 +6306,7 @@ function escolherTruque(){
       addSan(t.inst);comediaUsos++;comediaEscala++;
       log(`🎭 <b>${t.ic} ${t.n}</b> — ${t.d}`);
       chaosSays(t.fala,'#ff2e88');banner(t.n,'#ff2e88');
-      log(`🌀 a piada custou <b>${t.inst}</b> de instabilidade e o caos vai pular <b>+${comediaEscala}</b> nível${comediaEscala>1?'s':''}.`);
+      log(`🌀 a piada custou <b>${t.inst}</b> de insanidade e o caos vai pular <b>+${comediaEscala}</b> nível${comediaEscala>1?'s':''}.`);
       res();return;
     }
     const ov=document.createElement('div');ov.className='overlay comediaOv';
@@ -6289,7 +6321,7 @@ function escolherTruque(){
     tres.forEach(t=>{
       const el=document.createElement('div');el.className='truqueCard';
       el.innerHTML=`<div class="tic">${t.ic}</div><div class="tn">${t.n}</div>
-        <div class="td">${t.d}</div><div class="ti">🌀 +${t.inst} instabilidade</div>`;
+        <div class="td">${t.d}</div><div class="ti">🌀 +${t.inst} insanidade</div>`;
       el.onclick=()=>{
         S.legend();ov.remove();
         try{t.run()}catch(e){}
@@ -6298,7 +6330,7 @@ function escolherTruque(){
         log(`🎭 <b>${t.ic} ${t.n}</b> — ${t.d}`);
         chaosSays(t.fala,'#ff2e88');
         banner(t.n,'#ff2e88');
-        log(`🌀 a piada custou <b>${t.inst}</b> de instabilidade e o caos vai pular <b>+${comediaEscala}</b> nível${comediaEscala>1?'s':''} a mais.`);
+        log(`🌀 a piada custou <b>${t.inst}</b> de insanidade e o caos vai pular <b>+${comediaEscala}</b> nível${comediaEscala>1?'s':''} a mais.`);
         res();
       };
       g.appendChild(el);
@@ -7720,7 +7752,7 @@ function startNewRun(){
   document.body.classList.remove('drunk');updSan();resetChaosClock();
   if(isDevilMode()){
     log('♣ <b>TRUCO DE ALMAS</b>: as cartas mostram o que você merece ouvir; o Diabo recebe bônus de força que cresce a cada quatro mãos.');
-    log('🔫 o tambor começa com uma bala. o dano acumula instabilidade; sobreviva ao clique — se tiver sorte.');
+    log('🔫 o tambor começa com uma bala. o dano acumula insanidade; sobreviva ao clique — se tiver sorte.');
   }
   // ---- habilidades de início de partida ----
   if(heroIs('bardo')){st.mult=2;popEl('multN')}
@@ -7730,6 +7762,18 @@ function startNewRun(){
 let heroFlags={revived:false};
 
 /* ============ BOTÕES ============ */
+const gameMenu=$('gameMenu'),gameMenuToggle=$('gameMenuToggle'),gameMenuPanel=$('gameMenuPanel');
+function closeGameMenu(){
+  if(!gameMenu||!gameMenuToggle)return;
+  gameMenu.classList.remove('open');gameMenuToggle.setAttribute('aria-expanded','false');
+}
+gameMenuToggle.onclick=()=>{
+  const open=!gameMenu.classList.contains('open');
+  gameMenu.classList.toggle('open',open);gameMenuToggle.setAttribute('aria-expanded',String(open));
+};
+gameMenuPanel.addEventListener('click',e=>{if(e.target.closest('button'))closeGameMenu()});
+document.addEventListener('click',e=>{if(!gameMenu.contains(e.target))closeGameMenu()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeGameMenu()});
 $('next').onclick=()=>{
   S.click();st.rd++;
   try{ startRound(); }
@@ -7847,7 +7891,7 @@ log('🍻 <b>O BAR DO DEUS DA BEBIDA</b>: a placa no canto inferior direito ACEN
 log('🤲 <b>O DEUS DA ORDEM</b> intervém quando você está por baixo — vida cheia, lucidez, ou uma <b>CARTA DA ORDEM</b> abençoada (10 exclusivas, imunes ao caos).');
 log('👑 enfrente o <b>REI DO CAOS</b> para desbloquear a <b>INSANIDADE</b> — ela pode te salvar ou te destruir.');
 log('bem-vindo ao <b>CAOS REAL</b>. <b>688 criaturas</b>, 24 regras, 30 poderes, 20 itens, 40 eventos, 22 destinos do dado, <b>12 minigames</b>, <b>15 oponentes</b>, 21 cartas da Ordem e 21 cartas divinas.');
-log('🧭 a <b>ESTABILIDADE</b> cai sozinha com o tempo. <b>12 perigos de nível</b> atingem os DOIS lados.');
+log('🌀 a <b>INSANIDADE</b> aumenta um pouco a cada rodada, em ritmo mais lento. <b>12 perigos de nível</b> atingem os DOIS lados.');
 log('⌨ <b>ATALHOS</b>: <b>1-4</b> joga a carta · <b>Q W E R</b> usa item · <b>D</b> rola o dado · <b>ESPAÇO</b> continua.');
 log('🔥 <b>CAOS INTENSIFICADO</b>: até <b>12 regras</b> empilhadas, perigos desde o nível 4 (85% de chance), <b>perigo duplo</b> a partir do 30, e toda IA fica mais afiada conforme o caos sobe.');
 log('🌀 sobreviva ao <b>nível 55</b> e <b>O CAOS</b> em pessoa senta na cadeira do oponente. quando ele estiver perdendo, prepare o <b>jetpack</b>.');
@@ -7855,7 +7899,7 @@ log('🕳 novo oponente final: o <b>DEUS DO CAOS</b> (40 de vida). Ele <b>aprend
 log('🤝 <b>MODO 2 vs 1 (COOPERATIVO)</b>: no botão de modo, os <b>dois jogadores</b> enfrentam juntos qualquer oponente do jogo. Cada um joga uma carta e os valores <b>somam</b> — mas o inimigo tem o <b>DOBRO de vida</b>. Cartas do mesmo elemento, poderes duplos e valores próximos rendem <b>COMBOS</b>.');
 log('🎭 <b>25 PERSONAGENS JOGÁVEIS</b>, cada um com uma habilidade própria. Comece com o <b>Andarilho</b> e o <b>Deus da Ordem</b> e desbloqueie o resto com os pontos que ganhar. Seu progresso fica salvo.');
 
-log('🎭 <b>DEUS DA COMÉDIA</b> (personagem inicial, somos nós): a cada rodada você ESCOLHE um <b>truque sujo</b> entre 4 — torta na cara, casca de banana, troca de envelope, furo de roteiro. Mas cada piada <b>desestabiliza a realidade</b> e faz o caos pular <b>1 nível a mais</b> que a piada anterior.');
+log('🎭 <b>DEUS DA COMÉDIA</b> (personagem inicial, somos nós): a cada rodada você ESCOLHE um <b>truque sujo</b> entre 4 — torta na cara, casca de banana, troca de envelope, furo de roteiro. Mas cada piada <b>aumenta a insanidade</b> e faz o caos pular <b>1 nível a mais</b> que a piada anterior.');
 log('😡 o <b>ROSTO</b> no topo do HUD reage a tudo: fica mais bravo conforme você perde vida, a realidade desmorona e o caos sobe. Ele <b>muda de cara em cada modo</b> — palhaço, ordem, caos, dupla, bêbado.');
 log('🌀 <b>+25 EVENTOS NOVOS</b>: relicário lendário, contrabando divino, herança de um morto, mão gorda, cartas gêmeas, dom do trovão, bênção vampira, roubo de dom, inversão total das mãos, imposto sobre a alma, greve do caos e pacto grátis.');
 log('💥 <b>CAOS AUMENTADO</b>: até <b>16 regras</b> empilhadas, <b>2 e até 3 eventos</b> na mesma rodada, <b>perigo triplo</b> a partir do nível 42, maldição a cada 4 rodadas e o dado te traindo 88% das vezes.');
